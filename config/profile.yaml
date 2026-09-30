@@ -1,0 +1,13 @@
+# Default search criteria for /search. Any field can be overridden per run,
+# e.g. `/search keywords=firmware,embedded location=Hsinchu min_score=70`.
+industries:
+  - Semiconductor
+  - Software
+keywords:
+  include: []        # at least one must appear in the title or JD
+  exclude: []        # any match drops the posting before scoring
+locations:
+  - Taipei
+  - Hsinchu
+seniority: senior    # junior | mid | senior | staff | manager
+min_score: 60        # Fit Score threshold (0-100); postings below are not listed

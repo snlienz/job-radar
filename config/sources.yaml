@@ -1,0 +1,21 @@
+# Job Sources searched by /search. Add more with /add-source <url> or by hand.
+#
+# method:
+#   api     - public JSON endpoint, fetched by scripts/fetch_jobs.py (fast, stable)
+#   fetch   - static HTML page, fetched by scripts/fetch_jobs.py
+#   browser - JS-heavy site, driven by the agent through Claude in Chrome
+# adapter: which parser in fetch_jobs.py understands this source (api/fetch only)
+sources:
+  - name: 104
+    url: https://www.104.com.tw/jobs/search/
+    method: api
+    adapter: "104"
+
+  - name: NVIDIA
+    url: https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
+    method: api
+    adapter: workday
+
+  - name: TSMC
+    url: https://careers.tsmc.com/zh_TW/careers/SearchJobs
+    method: browser

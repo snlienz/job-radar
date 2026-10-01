@@ -72,6 +72,12 @@ def render(data: dict) -> str:
         for c in data["certifications"]:
             out.append(f"- {c['name']}" + (f" ({c['issuer']})" if c.get("issuer") else ""))
         out.append("")
+
+    if data.get("languages"):
+        out += ["## Languages", ""]
+        for lang in data["languages"]:
+            out.append(f"- {lang['name']}" + (f" ({lang['level']})" if lang.get("level") else ""))
+        out.append("")
     return "\n".join(out)
 
 

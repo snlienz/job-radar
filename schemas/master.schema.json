@@ -135,6 +135,7 @@
           "school": { "type": "string" },
           "degree": { "type": "string" },
           "field": { "type": "string" },
+          "thesis": { "type": "string" },
           "period": { "$ref": "#/$defs/period" }
         }
       }

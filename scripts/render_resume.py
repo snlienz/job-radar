@@ -78,6 +78,7 @@ def build_context(data: dict) -> dict:
                 "school": e["school"],
                 "degree": e["degree"] + (f", {e['field']}" if e.get("field") else ""),
                 "period": _period(e.get("period")),
+                "thesis": e.get("thesis", ""),
             }
             for e in data.get("education", [])
         ],

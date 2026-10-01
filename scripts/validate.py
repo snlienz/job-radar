@@ -117,12 +117,33 @@ def _all_ids(master: dict) -> set:
     return {a["id"] for a in _achievements(master)}
 
 
+def _check_highlights(bullets: list[dict], master: dict, seen: set) -> list[str]:
+    """Highlights may cite any master Achievement, and must include every one tagged `highlight`."""
+    errors = []
+    by_id = {a["id"]: a for a in _achievements(master)}
+    for bullet in bullets:
+        sid = bullet["source_id"]
+        if sid not in by_id:
+            errors.append(f"highlights: source_id {sid} not found in master")
+        elif "do-not-use" in by_id[sid].get("tags", []):
+            errors.append(f"highlights: source_id {sid} is tagged do-not-use")
+        if sid in seen:
+            errors.append(f"source_id {sid} used twice")
+        seen.add(sid)
+    used = {b["source_id"] for b in bullets}
+    for aid, ach in by_id.items():
+        if "highlight" in ach.get("tags", []) and aid not in used:
+            errors.append(f"highlights: {aid} is tagged highlight in master but missing from highlights")
+    return errors
+
+
 def _check_against_master(data: dict, master: dict) -> list[str]:
     errors = []
     for key, value in data["basics"].items():
         if key not in FREE_BASICS and value != master["basics"].get(key):
             errors.append(f"basics: {key} differs from master")
     seen: set = set()
+    errors += _check_highlights(data.get("highlights", []), master, seen)
     errors += _check_entries("experience", "experience", data["experience"], master, seen)
     errors += _check_entries("projects", "project", data.get("projects", []), master, seen)
     master_skills = {s["name"].casefold() for s in master.get("skills", [])}

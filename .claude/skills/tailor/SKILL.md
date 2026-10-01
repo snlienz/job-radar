@@ -21,6 +21,7 @@ Read `data/master.yaml` (all of it). Never read `data/raw/`; the Master Resume i
 
 Pick what this JD wants, keeping the resume to roughly one to two pages:
 - **Achievements**: choose the ones most relevant to the JD's responsibilities and requirements, most relevant first within each experience entry. Drop weak or off-topic ones. Skip any tagged `do-not-use`.
+- **Highlights**: every Achievement tagged `highlight` in the master (patents, awards, promotions, launch results), from any entry, whether or not it fits the JD. They are proof of past results and always go in.
 - **Skills**: only skills that exist in the master's `skills`, ordered by relevance to the JD.
 - **Education, certifications, languages**: copy entries unchanged from the master.
 - **Summary / headline**: the only free text. Write 2-3 sentences supported by the Achievements you selected.
@@ -31,6 +32,7 @@ Same shape as the master, with these differences:
 - `job: <slug>` at the top.
 - Every bullet is `{source_id, text}`, where `source_id` is the master Achievement `id` it came from, and the bullet sits under the same `experience` / `projects` entry as that Achievement.
 - Each experience/project entry keeps its master `id`, `company`, `title`, `location`, `period` exactly. Do not change titles or dates.
+- `highlights:` (rendered as Key Achievements, above Skills) is a list of `{source_id, text}` bullets, one per `highlight` Achievement, ordered by impact. Name the company in the text, e.g. `(Barco)`, since they sit outside the experience entries. A highlighted Achievement goes here, not under its experience entry.
 - Each Achievement is used at most once.
 
 Rephrasing rules (the point of tailoring, but never at the cost of truth):
@@ -53,7 +55,7 @@ python scripts/validate.py output/<slug>/tailored.yaml --master data/master.yaml
 python scripts/render_resume.py output/<slug>/tailored.yaml templates/default.docx output/<slug>
 ```
 
-Validation fails on a bullet with no or unknown `source_id`, a bullet filed under the wrong entry, a `do-not-use` Achievement, a reused Achievement, a changed title/company/period, or a skill / education / certification / language that is not in the master. Fix every error and rerun; never edit the validator or the master to make it pass. Use another template from `templates/` if the user asks.
+Validation fails on a missing `highlight` Achievement, a bullet with no or unknown `source_id`, a bullet filed under the wrong entry, a `do-not-use` Achievement, a reused Achievement, a changed title/company/period, or a skill / education / certification / language that is not in the master. Fix every error and rerun; never edit the validator or the master to make it pass. Use another template from `templates/` if the user asks.
 
 `render_resume.py` writes `resume.docx` and `resume.pdf` (PDF needs Word; if it fails, say so, the docx is still usable).
 

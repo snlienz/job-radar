@@ -82,10 +82,16 @@ def is_supported(path: Path) -> bool:
     return path.suffix.lower() in TEXT_SUFFIXES | _EXTRACTORS.keys()
 
 
-def scan(raw_dir: Path, extracted_dir: Path, manifest_path: Path) -> ScanResult:
-    manifest = {}
+def _load_manifest(manifest_path: Path) -> dict:
     if manifest_path.exists():
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        return json.loads(manifest_path.read_text(encoding="utf-8"))
+    return {}
+
+
+def scan(raw_dir: Path, extracted_dir: Path, manifest_path: Path) -> ScanResult:
+    """Extract new/changed files. The manifest is read-only here: files only count
+    as scanned once `commit` is called after their content was merged."""
+    manifest = _load_manifest(manifest_path)
     result = ScanResult()
     for path in sorted(raw_dir.rglob("*")):
         if not path.is_file():
@@ -103,13 +109,21 @@ def scan(raw_dir: Path, extracted_dir: Path, manifest_path: Path) -> ScanResult:
         out = extracted_dir / (rel + ".txt")
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(extract_text(path), encoding="utf-8")
-        manifest[rel] = {
-            "sha256": digest,
-            "scanned_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        }
         (result.changed if known else result.new).append(rel)
-    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
     return result
+
+
+def commit(raw_dir: Path, manifest_path: Path, rels: list[str]) -> None:
+    """Record files as scanned, once their content is merged and validated."""
+    manifest = _load_manifest(manifest_path)
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    for rel in rels:
+        path = raw_dir / rel
+        if not path.is_file():
+            raise FileNotFoundError(f"not a Raw Record: {rel}")
+        manifest[rel] = {"sha256": _sha256(path), "scanned_at": now}
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def main() -> None:
@@ -119,8 +133,19 @@ def main() -> None:
     parser.add_argument("--raw", type=Path, default=Path("data/raw"))
     parser.add_argument("--out", type=Path, default=Path("data/extracted"))
     parser.add_argument("--manifest", type=Path, default=Path("data/manifest.json"))
+    parser.add_argument(
+        "--commit",
+        nargs="+",
+        metavar="PATH",
+        help="mark these files (relative to --raw, as printed by extract) as scanned",
+    )
     args = parser.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")  # wiki paths contain non-ASCII characters
+
+    if args.commit:
+        commit(args.raw, args.manifest, args.commit)
+        print(f"committed {len(args.commit)} file(s)")
+        return
 
     result = scan(args.raw, args.out, args.manifest)
     for label, files in (("new", result.new), ("changed", result.changed)):

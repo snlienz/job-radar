@@ -1,4 +1,4 @@
-"""Generate templates/cv-clean.docx, the plain black-and-white CV Template (docxtpl tags)."""
+"""Generate templates/default.docx, the plain black-and-white CV Template (docxtpl tags)."""
 import argparse
 from pathlib import Path
 
@@ -80,9 +80,9 @@ def build(path: Path) -> None:
     _heading(doc, "SKILLS")
     _tag(doc, "{%p for g in skills %}")
     p = _para(doc, after=1)
-    p.paragraph_format.left_indent = Cm(3.2)
-    p.paragraph_format.first_line_indent = Cm(-3.2)
-    p.paragraph_format.tab_stops.add_tab_stop(Cm(3.2))
+    p.paragraph_format.left_indent = Cm(4.4)
+    p.paragraph_format.first_line_indent = Cm(-4.4)
+    p.paragraph_format.tab_stops.add_tab_stop(Cm(4.4))
     r = p.add_run("{{ g.category }}")
     r.bold = True
     p.add_run("\t{{ g.names }}")
@@ -143,6 +143,6 @@ def build(path: Path) -> None:
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", default="templates/cv-clean.docx")
+    ap.add_argument("--out", default="templates/default.docx")
     build(Path(ap.parse_args().out))
     print("wrote", ap.parse_args().out)

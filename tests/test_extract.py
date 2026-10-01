@@ -1,3 +1,4 @@
+import codecs
 import json
 
 from extract import commit, scan
@@ -191,3 +192,27 @@ def test_attachments_folders_and_unsupported_formats_are_skipped(tmp_path):
     assert result.skipped == ["demo.mov", "tool.EXE"]
     assert not manifest.exists()
     assert not (extracted / "wiki" / "attachments").exists()
+
+
+def test_big5_and_bom_text_files_are_decoded(tmp_path):
+    raw, extracted, manifest = make_dirs(tmp_path)
+    (raw / "old.txt").write_bytes("年度考核：完成 WGC 整合".encode("cp950"))
+    (raw / "bom.md").write_bytes(codecs.BOM_UTF8 + "本週完成".encode("utf-8"))
+
+    result = scan(raw, extracted, manifest)
+
+    assert sorted(result.new) == ["bom.md", "old.txt"]
+    assert (extracted / "old.txt.txt").read_text(encoding="utf-8") == "年度考核：完成 WGC 整合"
+    assert (extracted / "bom.md.txt").read_text(encoding="utf-8") == "本週完成"
+
+
+def test_unreadable_file_is_reported_as_failed_and_scan_continues(tmp_path):
+    raw, extracted, manifest = make_dirs(tmp_path)
+    (raw / "broken.docx").write_bytes(b"not a zip")
+    (raw / "ok.md").write_text("fine", encoding="utf-8")
+
+    result = scan(raw, extracted, manifest)
+
+    assert result.new == ["ok.md"]
+    assert [rel for rel, _ in result.failed] == ["broken.docx"]
+    assert not (extracted / "broken.docx.txt").exists()

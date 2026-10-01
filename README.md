@@ -30,7 +30,7 @@ Start Claude Code from a terminal where `.venv` is activated, so the commands' `
 
 Create `data/raw/` and drop in anything that describes your work: old resumes, self-reviews, weekly reports, wiki or Confluence exports. Subfolders are fine.
 
-Supported formats: `.md`, `.txt`, `.docx`, `.pptx`, `.xlsx`, `.pdf`. Other files (legacy `.doc`, images…) are skipped, and so is any `attachments/` folder. Text files must be UTF-8. Save a `.doc` as `.docx` first.
+Supported formats: `.md`, `.txt`, `.docx`, `.pptx`, `.xlsx`, `.pdf`. Other files (legacy `.doc`, images…) are skipped, and so is any `attachments/` folder. Text files can be UTF-8 or Big5. Save a `.doc` as `.docx` first. A file that cannot be read is listed as `failed` and the rest of the scan carries on.
 
 ### 2. Build the Master Resume — `/scan`
 

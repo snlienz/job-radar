@@ -7,6 +7,8 @@ from pathlib import Path
 import yaml
 from jsonschema import Draft202012Validator
 
+from extract import TEXT_SUFFIXES, read_text_file
+
 
 def _achievements(data: dict):
     for section in ("experience", "projects"):
@@ -24,8 +26,8 @@ def _source_text(rel: str, raw_dir: Path, extracted_dir: Path) -> str | None:
     if extracted.is_file():
         return extracted.read_text(encoding="utf-8")
     raw = raw_dir / rel
-    if raw.suffix.lower() in (".md", ".txt"):
-        return raw.read_text(encoding="utf-8")
+    if raw.suffix.lower() in TEXT_SUFFIXES:
+        return read_text_file(raw)
     return None
 
 

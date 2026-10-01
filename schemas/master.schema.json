@@ -131,6 +131,18 @@
           "date": { "type": "string" }
         }
       }
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "level": { "type": "string", "description": "e.g. Native, Fluent, Professional working" }
+        }
+      }
     }
   }
 }

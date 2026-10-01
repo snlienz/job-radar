@@ -12,6 +12,7 @@ class ScanResult:
     new: list[str] = field(default_factory=list)
     changed: list[str] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)  # unsupported formats
+    failed: list[tuple[str, str]] = field(default_factory=list)  # (path, reason): corrupt or undecodable
 
 
 def _sha256(path: Path) -> str:
@@ -62,6 +63,7 @@ def _pdf_text(path: Path) -> str:
 
 
 TEXT_SUFFIXES = {".md", ".txt"}
+TEXT_ENCODINGS = ("utf-8-sig", "cp950")  # cp950 (Big5): older Traditional Chinese Windows exports
 IGNORED_DIRS = {"attachments"}
 _EXTRACTORS = {
     ".docx": _docx_text,
@@ -71,10 +73,20 @@ _EXTRACTORS = {
 }
 
 
+def read_text_file(path: Path) -> str:
+    data = path.read_bytes()
+    for encoding in TEXT_ENCODINGS:
+        try:
+            return data.decode(encoding).replace("\r\n", "\n")
+        except UnicodeDecodeError:
+            pass
+    raise ValueError(f"not {' or '.join(TEXT_ENCODINGS)} text; re-save it as UTF-8")
+
+
 def extract_text(path: Path) -> str:
     suffix = path.suffix.lower()
     if suffix in TEXT_SUFFIXES:
-        return path.read_text(encoding="utf-8")
+        return read_text_file(path)
     return _EXTRACTORS[suffix](path)
 
 
@@ -106,9 +118,14 @@ def scan(raw_dir: Path, extracted_dir: Path, manifest_path: Path) -> ScanResult:
         known = manifest.get(rel)
         if known and known["sha256"] == digest:
             continue
+        try:
+            text = extract_text(path)
+        except Exception as exc:  # one corrupt or undecodable file must not stop the scan
+            result.failed.append((rel, f"{type(exc).__name__}: {exc}"))
+            continue
         out = extracted_dir / (rel + ".txt")
         out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(extract_text(path), encoding="utf-8")
+        out.write_text(text, encoding="utf-8")
         (result.changed if known else result.new).append(rel)
     return result
 
@@ -151,9 +168,11 @@ def main() -> None:
     for label, files in (("new", result.new), ("changed", result.changed)):
         for rel in files:
             print(f"{label}\t{rel}")
+    for rel, reason in result.failed:
+        print(f"failed\t{rel}\t{reason}")
     print(
         f"{len(result.new)} new, {len(result.changed)} changed, "
-        f"{len(result.skipped)} skipped (unsupported format)"
+        f"{len(result.skipped)} skipped (unsupported format), {len(result.failed)} failed"
     )
 
 

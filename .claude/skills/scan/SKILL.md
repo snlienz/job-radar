@@ -13,7 +13,7 @@ Build `data/master.yaml` from Raw Records. Read `CONTEXT.md` and `docs/adr/0002-
 python scripts/extract.py
 ```
 
-Prints `new` / `changed` files and writes text to `data/extracted/<path>.txt`. Files already in `data/manifest.json` are skipped, but extract never writes the manifest: a file only counts as scanned after you commit it (step 4), so an interrupted scan reports the same files again next time. `attachments/` folders and non-text formats (png, mov…) are ignored. If nothing is new or changed, say so and stop.
+Prints `new` / `changed` files and writes text to `data/extracted/<path>.txt`. Files already in `data/manifest.json` are skipped, but extract never writes the manifest: a file only counts as scanned after you commit it (step 4), so an interrupted scan reports the same files again next time. `attachments/` folders and non-text formats (png, mov…) are ignored. A `failed` line is a file that could not be read (corrupt, password-protected, or text that is neither UTF-8 nor Big5): tell the user which file and why, and carry on with the rest. If nothing is new or changed, say so and stop.
 
 Read **only** the extracted text of new/changed files, never the whole of `data/extracted/`.
 

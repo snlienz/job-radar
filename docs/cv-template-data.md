@@ -13,7 +13,7 @@ Use paragraph-level tags (`{%p if x %}`, `{%p for x in y %}`, `{%p endif %}`, `{
 | `skills` | list | `category`, `names` (comma-joined), grouped by category |
 | `experience` | list | `company`, `location_suffix` (`", City"` or empty), `title`, `period`, `areas`, `bullets` (list of strings, the ones in no area) |
 | `job.areas` | list | Work Areas: `name`, `summary_suffix` (`" – summary"` or empty), `bullets` (list of strings) |
-| `education` | list | `school`, `degree` (with field appended), `period` |
+| `education` | list | `school`, `degree` (with field appended), `period`, `thesis` (empty if none) |
 | `certifications` | list | `line` (name, issuer, date joined with commas) |
 | `languages` | string | `English (Fluent), Chinese (Native)`, empty if none |
 

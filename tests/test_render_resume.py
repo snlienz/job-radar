@@ -130,3 +130,14 @@ def test_master_areas_group_achievements_by_id(tmp_path):
 
     assert text.index("Integrated WGC, 48-hour long run stable.") > text.index("Replaced SIFT with template matching.")
     assert text.count("Replaced SIFT with template matching.") == 1
+
+
+def test_thesis_renders_under_its_degree_only_when_set(tmp_path):
+    data = resume()
+    data["education"].append({"school": "York", "degree": "B.S."})
+    data["education"][0]["thesis"] = "Color Reproduction in Digital Cameras"
+
+    text = lines(render_docx(data, TEMPLATE, tmp_path / "resume.docx"))
+
+    assert text.index("M.S., Electrical Engineering") < text.index("Thesis: Color Reproduction in Digital Cameras")
+    assert sum(t.startswith("Thesis:") for t in text) == 1

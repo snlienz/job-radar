@@ -76,6 +76,8 @@ def render(data: dict) -> str:
         for e in data["education"]:
             field = f", {e['field']}" if e.get("field") else ""
             out.append(f"- {e['degree']}{field} — {e['school']} {_period(e.get('period'))}".rstrip())
+            if e.get("thesis"):
+                out.append(f"  - thesis: {e['thesis']}")
         out.append("")
 
     if data.get("certifications"):

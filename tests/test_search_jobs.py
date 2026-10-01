@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from search_jobs import filter_postings, known_jobs, posting_key, read_job, rebuild_index, write_jobs
+from search_jobs import (filter_postings, known_jobs, posting_key, read_job, rebuild_index, set_status,
+                         write_jobs)
 from search_profile import load_profile
 
 
@@ -144,3 +145,29 @@ def test_one_bad_score_writes_nothing(tmp_path):
         run_write(jobs, cands, {"nvidia-a": score(80), "nvidia-b": score(101)})
 
     assert not jobs.exists() or not list(jobs.glob("*.md"))
+
+
+def test_set_status_changes_only_the_status_and_rebuilds_index(tmp_path):
+    jobs = tmp_path / "jobs"
+    run_write(jobs, [{**posting(), "key": "nvidia-jr1"}], {"nvidia-jr1": score(80)})
+    path = jobs / "nvidia-jr1.md"
+    before = path.read_text(encoding="utf-8")
+
+    set_status(jobs, "nvidia-jr1", "applied")
+
+    assert path.read_text(encoding="utf-8") == before.replace("status: new", "status: applied")
+    assert "| applied |" in (jobs / "INDEX.md").read_text(encoding="utf-8")
+    set_status(jobs, "jobs/nvidia-jr1.md", "ignored")  # a job file path works too
+    assert read_job(path)[0]["status"] == "ignored"
+    assert "nvidia-jr1" not in (jobs / "INDEX.md").read_text(encoding="utf-8")
+
+
+def test_set_status_rejects_unknown_status_and_missing_job(tmp_path):
+    jobs = tmp_path / "jobs"
+    run_write(jobs, [{**posting(), "key": "nvidia-jr1"}], {"nvidia-jr1": score(80)})
+
+    with pytest.raises(ValueError, match="unknown status"):
+        set_status(jobs, "nvidia-jr1", "hired")
+    with pytest.raises(FileNotFoundError):
+        set_status(jobs, "nvidia-nope", "applied")
+    assert read_job(jobs / "nvidia-jr1.md")[0]["status"] == "new"

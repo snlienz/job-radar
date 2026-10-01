@@ -57,7 +57,11 @@ Validation fails on a bullet with no or unknown `source_id`, a bullet filed unde
 
 `render_resume.py` writes `resume.docx` and `resume.pdf` (PDF needs Word; if it fails, say so, the docx is still usable).
 
-If there is a job file, set `status: tailored` in its frontmatter, unless it is already further along (`applied`, `interview`, `offer`, `rejected`).
+If there is a job file, set its status to `tailored`, unless it is already further along (`applied`, `interview`, `offer`, `rejected`):
+
+```
+python scripts/search_jobs.py status <slug> tailored
+```
 
 ## 6. Report
 

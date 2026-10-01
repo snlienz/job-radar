@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "jobNo": "7abc1",
+      "jobName": "韌體工程師 Firmware Engineer",
+      "custName": "範例科技股份有限公司",
+      "jobAddrNoDesc": "新竹市",
+      "descWithoutHighlight": "負責嵌入式韌體開發 (snippet)",
+      "appearDate": "20261001",
+      "link": { "job": "//www.104.com.tw/job/7abc1?jobsource=search" }
+    },
+    {
+      "jobNo": "7abc2",
+      "jobName": "Embedded Software Engineer",
+      "custName": "Example Corp",
+      "jobAddrNoDesc": "台北市內湖區",
+      "descWithoutHighlight": "Embedded C/C++ (snippet)",
+      "appearDate": "20260930",
+      "link": { "job": "//www.104.com.tw/job/7abc2?jobsource=search" }
+    }
+  ],
+  "metadata": { "pagination": { "lastPage": 1, "total": 2 } }
+}

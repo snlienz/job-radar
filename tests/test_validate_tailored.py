@@ -178,3 +178,30 @@ def test_changed_basics_fact_is_rejected_but_headline_and_summary_may_differ(tmp
     assert check(tmp_path, ok) == []
     errors = check(tmp_path, bad)
     assert len(errors) == 1 and "email" in errors[0]
+
+
+def test_highlights_may_cite_any_entry_but_not_twice_or_do_not_use(tmp_path):
+    ok = tailored(highlights=[{"source_id": "smart-home", "text": "Built a stack (FTDI)."}])
+    reused = tailored(highlights=[{"source_id": "wgc-capture", "text": "Again."}])
+    hidden = tailored(highlights=[{"source_id": "secret", "text": "Private."}])
+
+    assert check(tmp_path, ok) == []
+    assert any("wgc-capture" in e and "twice" in e for e in check(tmp_path, reused))
+    assert any("secret" in e and "do-not-use" in e for e in check(tmp_path, hidden))
+
+
+def test_every_master_highlight_must_appear_in_highlights(tmp_path):
+    master = master_data()
+    master["experience"][1]["achievements"][0]["tags"] = ["highlight"]
+    missing = tailored()
+    in_experience_only = tailored()
+    in_experience_only["experience"].append({
+        "id": "ftdi", "company": "FTDI", "title": "Engineer", "period": {"start": "2014", "end": "2018-06"},
+        "achievements": [{"source_id": "smart-home", "text": "Built a stack."}],
+    })
+    present = tailored(highlights=[{"source_id": "smart-home", "text": "Built a stack (FTDI)."}])
+
+    assert check(tmp_path, present, master) == []
+    errors = check(tmp_path, missing, master)
+    assert len(errors) == 1 and "smart-home" in errors[0] and "highlight" in errors[0]
+    assert any("smart-home" in e for e in check(tmp_path, in_experience_only, master))

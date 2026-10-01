@@ -99,3 +99,13 @@ def test_achievements_tagged_do_not_use_are_not_rendered(tmp_path):
     text = "\n".join(lines(out))
     assert "Integrated WGC" in text
     assert "Replaced SIFT" not in text
+
+
+def test_highlights_render_in_their_own_section_and_vanish_when_empty(tmp_path):
+    data = resume()
+    data["highlights"] = [{"source_id": "a3", "text": "First inventor of a patent (Barco)."}]
+    text = lines(render_docx(data, TEMPLATE, tmp_path / "with.docx"))
+    assert text.index("KEY ACHIEVEMENTS") < text.index("First inventor of a patent (Barco).") < text.index("SKILLS")
+
+    without = lines(render_docx(resume(), TEMPLATE, tmp_path / "without.docx"))
+    assert "KEY ACHIEVEMENTS" not in without

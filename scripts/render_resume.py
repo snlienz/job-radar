@@ -38,6 +38,7 @@ def build_context(data: dict) -> dict:
     return {
         "basics": {**basics, "contact": " | ".join(c for c in contact if c)},
         "summary": basics.get("summary", ""),
+        "highlights": [h["text"] for h in data.get("highlights", [])],
         "skills": _skill_groups(data.get("skills", [])),
         "experience": [
             {

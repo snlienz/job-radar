@@ -43,6 +43,11 @@
         "summary": { "type": "string" }
       }
     },
+    "highlights": {
+      "type": "array",
+      "description": "Key Achievements section: every master Achievement tagged `highlight` (from any entry), whether or not it fits the job",
+      "items": { "$ref": "#/$defs/bullet" }
+    },
     "experience": {
       "type": "array",
       "items": {

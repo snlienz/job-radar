@@ -10,6 +10,8 @@
 
 **Achievement** — one atomic, citable fact (`id`, `text`, `metrics`, `tags`, `sources`). The unit that Tailoring selects and rewrites.
 
+**Highlight** — an Achievement tagged `highlight` in the Master Resume (patent, award, promotion, launch result). Every Tailored Resume lists all Highlights in its Key Achievements section, whatever the job.
+
 **Job Source** — an entry in `config/sources.yaml` (104 or a company careers site) with a fetch `method`: `api`, `fetch` or `browser`.
 
 **Search Profile** — default filters in `config/profile.yaml` (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run.

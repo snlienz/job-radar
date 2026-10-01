@@ -40,7 +40,7 @@ Read **`data/master.md`**, the human-readable version. Edit `data/master.yaml` d
 
 ### 3. Set what you are looking for
 
-Edit [`config/profile.yaml`](config/profile.yaml): keywords, locations, industries, seniority and the minimum Fit Score. **Set `keywords.include`**: it is empty by default, which searches every posting in your locations.
+Edit [`config/profile.yaml`](config/profile.yaml): keywords, locations, industries, seniority and the minimum Fit Score. **Set `keywords.include`**: it is empty by default, and `/search` will ask for keywords rather than fetch every posting in your locations.
 
 Job Sources live in [`config/sources.yaml`](config/sources.yaml) (104, NVIDIA and TSMC to start). Add a company with `/add-source <careers page url>`.
 
@@ -62,12 +62,13 @@ Each job file has a `status` in its frontmatter:
 
 `new` → `shortlisted` → `tailored` → `applied` → `interview` → `rejected` / `offer`, or `ignored`
 
-`/tailor` sets `tailored`; change the others by editing the file. `ignored` hides the job from `INDEX.md` and from future searches. After editing, refresh the index:
+`/tailor` sets `tailored`. Set the others with:
 
 ```powershell
-python scripts/search_jobs.py index
+python scripts/search_jobs.py status nvidia-jr2014555 applied   # the job file name, with or without jobs/ and .md
 ```
 
+It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the job from `INDEX.md` and from future searches. If you edit job files by hand instead, refresh the index with `python scripts/search_jobs.py index`.
 ## Commands
 
 | Command | What it does |

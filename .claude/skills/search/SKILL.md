@@ -7,6 +7,8 @@ description: Find Job Postings from the configured Job Sources, filter them by t
 
 Read `CONTEXT.md` and `docs/adr/0003-per-source-fetch-method.md` first. Arguments are optional `key=value` overrides of `config/profile.yaml`: `keywords=a,b` (must match title or JD), `exclude=x,y`, `location=Taipei,Hsinchu`, `industries=…`, `seniority=…`, `min_score=70`. Pass them unchanged to the scripts below. Work in `data/search/<YYYY-MM-DD>/` (gitignored).
 
+If neither `config/profile.yaml` `keywords.include` nor a `keywords=` override gives a keyword, stop and ask the user for some before fetching: without one every posting in the locations is fetched and scored.
+
 ## 1. Fetch (api / fetch sources)
 
 ```

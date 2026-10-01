@@ -238,6 +238,8 @@ def main() -> int:
     args = parser.parse_args()
 
     profile = load_profile(args.profile, args.overrides)
+    if not profile["include"]:
+        print("WARNING no include keywords: fetching every posting in the profile's locations", file=sys.stderr)
     sources = yaml.safe_load(args.sources.read_text(encoding="utf-8"))["sources"]
     if args.only:
         sources = [s for s in sources if str(s["name"]) == args.only]

@@ -3,6 +3,7 @@
   filter  postings.json --out candidates.json [overrides]   hard filter + dedupe (+ `key` per posting)
   write   candidates.json scores.json [overrides]           jobs/<key>.md for scores >= min_score
   index                                                     regenerate jobs/INDEX.md only
+  status  <key or jobs/<key>.md> <status>                   set a Job Posting's status, then reindex
 """
 import argparse
 import json
@@ -20,6 +21,7 @@ CITY_ALIASES = {  # profile names are English; postings are often Chinese
     "tainan": ["台南", "臺南"], "kaohsiung": ["高雄"], "taoyuan": ["桃園"],
 }
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n?(.*)\Z", re.S)
+STATUSES = ("new", "shortlisted", "tailored", "applied", "interview", "rejected", "offer", "ignored")
 
 
 def slug(text: str) -> str:
@@ -53,6 +55,25 @@ def known_jobs(jobs_dir: Path) -> dict[str, dict]:
         if meta.get("url"):
             jobs[normalize_url(meta["url"])] = {**meta, "file": path.name}
     return jobs
+
+
+def set_status(jobs_dir: Path, job: str, status: str) -> Path:
+    """Rewrite only the `status:` line of a job file's frontmatter, then rebuild the index."""
+    if status not in STATUSES:
+        raise ValueError(f"unknown status {status!r}; expected one of {', '.join(STATUSES)}")
+    path = Path(jobs_dir) / f"{Path(job).stem}.md"
+    if not path.is_file():
+        raise FileNotFoundError(f"no job file {path}")
+    text = path.read_text(encoding="utf-8")
+    match = FRONTMATTER.match(text)
+    if not match:
+        raise ValueError(f"{path}: missing frontmatter")
+    header, n = re.subn(r"^status:.*$", f"status: {status}", match.group(1), count=1, flags=re.M)
+    if not n:
+        header += f"\nstatus: {status}"
+    path.write_text(f"---\n{header}\n---\n{text[match.start(2):]}", encoding="utf-8")
+    rebuild_index(jobs_dir)
+    return path
 
 
 # --- hard filter -------------------------------------------------------------------------------
@@ -172,7 +193,7 @@ def rebuild_index(jobs_dir: Path) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": []}
+    positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": [], "status": []}
     for name, names in positionals.items():
         p = sub.add_parser(name)
         for arg in names:
@@ -180,13 +201,24 @@ def main() -> int:
         p.add_argument("--jobs", type=Path, default=Path("jobs"))
         if name == "filter":
             p.add_argument("--out", type=Path, required=True)
-        if name != "index":
+        if name == "status":
+            p.add_argument("job", help="job key or jobs/<key>.md")
+            p.add_argument("status", choices=STATUSES)
+        if name not in ("index", "status"):
             p.add_argument("--profile", type=Path, default=Path("config/profile.yaml"))
             p.add_argument("overrides", nargs="*")
     args = parser.parse_args()
 
     if args.cmd == "index":
         print(f"wrote {rebuild_index(args.jobs)}")
+        return 0
+    if args.cmd == "status":
+        try:
+            path = set_status(args.jobs, args.job, args.status)
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"ERROR {exc}", file=sys.stderr)
+            return 1
+        print(f"{path}: status {args.status}; index rebuilt")
         return 0
     profile = load_profile(args.profile, args.overrides)
     if args.cmd == "filter":

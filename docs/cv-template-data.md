@@ -1,6 +1,6 @@
 # CV Template data shape
 
-`scripts/render_resume.py` turns a resume YAML (same shape as `data/master.yaml`, see `schemas/master.schema.json`) into the variables below with `build_context()`, then renders the template with docxtpl. Achievements tagged `do-not-use` are dropped.
+`scripts/render_resume.py` turns a resume YAML (same shape as `data/master.yaml`, see `schemas/master.schema.json`; a Tailored Resume, `schemas/tailored.schema.json`, renders too) into the variables below with `build_context()`, then renders the template with docxtpl. Achievements tagged `do-not-use` are dropped.
 
 Use paragraph-level tags (`{%p if x %}`, `{%p for x in y %}`, `{%p endif %}`, `{%p endfor %}`), each alone in its own paragraph, so the tag paragraphs disappear from the output.
 

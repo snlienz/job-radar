@@ -29,7 +29,7 @@ Rules:
 - **Conflicts.** If sources disagree (dates, numbers, titles), keep the best-supported value, set `conflict` to a one-line explanation, and ask in the Gap Interview.
 - **Never touch `locked`.** Anything with `locked: true`, and anything under a `locked` experience/project/basics, is read-only. To add evidence to a locked Achievement, put the suggestion in the Gap Interview instead.
 - **Personal data.** Only fill `basics` fields the schema has. Do not copy date of birth, ID numbers, or home address.
-- Put each Achievement under the right `experience` entry (company + period) or `projects`. Fill `skills` (with `evidence` ids) and `education` / `certifications` / `languages` when sources state them.
+- Put each Achievement under the right `experience` entry (company + period) or `projects`. If the entry has `areas` (Work Areas), add the new id to the area it belongs to; an Achievement tagged `highlight` stays out of areas. Create or rename areas, and set `core`, only with the user's agreement. Fill `skills` (with `evidence` ids) and `education` / `certifications` / `languages` when sources state them.
 
 ## 3. Reading order (large data sets)
 

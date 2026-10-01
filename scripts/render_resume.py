@@ -31,6 +31,25 @@ def _skill_groups(skills: list[dict]) -> list[dict]:
     return [{"category": c, "names": ", ".join(n)} for c, n in groups.items()]
 
 
+def _grouped_ids(job: dict) -> set:
+    """Master area membership (ids); a tailored area holds its bullets itself."""
+    return {aid for area in job.get("areas", []) for aid in area["achievements"] if isinstance(aid, str)}
+
+
+def _areas(job: dict) -> list[dict]:
+    """Work Areas with their bullets: a tailored area holds bullets, a master area holds ids."""
+    by_id = {a["id"]: a for a in job.get("achievements", []) if "id" in a}
+    areas = []
+    for area in job.get("areas", []):
+        items = [by_id.get(a) if isinstance(a, str) else a for a in area["achievements"]]
+        bullets = [a["text"] for a in items if a and "do-not-use" not in a.get("tags", [])]
+        if bullets:
+            summary = area.get("summary")
+            areas.append({"name": area["name"], "summary_suffix": f" – {summary}" if summary else "",
+                          "bullets": bullets})
+    return areas
+
+
 def build_context(data: dict) -> dict:
     """Flatten a resume into the variables CV Templates use (see docs/cv-template-data.md)."""
     basics = data.get("basics", {})
@@ -46,8 +65,10 @@ def build_context(data: dict) -> dict:
                 "location_suffix": f", {job['location']}" if job.get("location") else "",
                 "title": job["title"],
                 "period": _period(job.get("period")),
+                "areas": _areas(job),
                 "bullets": [
-                    a["text"] for a in job.get("achievements", []) if "do-not-use" not in a.get("tags", [])
+                    a["text"] for a in job.get("achievements", [])
+                    if "do-not-use" not in a.get("tags", []) and a.get("id") not in _grouped_ids(job)
                 ],
             }
             for job in data.get("experience", [])

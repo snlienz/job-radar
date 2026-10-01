@@ -1,0 +1,24 @@
+{
+ "total": 2,
+ "jobPostings": [
+  {
+   "title": "GPU Firmware Engineer",
+   "externalPath": "/job/Taiwan-Taipei/GPU-Firmware-Engineer_JR2014555",
+   "locationsText": "Taiwan, Taipei",
+   "postedOn": "Posted 30+ Days Ago",
+   "bulletFields": [
+    "JR2014555"
+   ]
+  },
+  {
+   "title": "Server Firmware Developer (RDSS Intern)",
+   "externalPath": "/job/Taiwan-Taipei/Server-Firmware-Developer--RDSS-Intern-_JR2025558",
+   "locationsText": "Taiwan, Taipei",
+   "postedOn": "Posted 14 Days Ago",
+   "bulletFields": [
+    "JR2025558"
+   ]
+  }
+ ],
+ "userAuthenticated": false
+}

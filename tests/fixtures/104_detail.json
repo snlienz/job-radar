@@ -1,0 +1,7 @@
+{
+  "data": {
+    "header": { "jobName": "韌體工程師 Firmware Engineer", "custName": "範例科技股份有限公司" },
+    "jobDetail": { "jobDescription": "負責嵌入式韌體開發\n撰寫 C/C++ driver" },
+    "condition": { "workExp": "3年以上", "edu": "大學", "specialty": ["C", "C++"] }
+  }
+}

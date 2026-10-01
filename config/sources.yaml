@@ -5,6 +5,8 @@
 #   fetch   - static HTML page, fetched by scripts/fetch_jobs.py
 #   browser - JS-heavy site, driven by the agent through Claude in Chrome
 # adapter: which parser in fetch_jobs.py understands this source (api/fetch only)
+# An api/fetch source that refuses scripted access (e.g. 104's bot challenge) is reported as BLOCKED
+# and /search fetches it through the browser instead.
 sources:
   - name: 104
     url: https://www.104.com.tw/jobs/search/

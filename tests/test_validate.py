@@ -124,3 +124,35 @@ def test_dangling_skill_evidence_id_is_reported(tmp_path):
 
     assert len(errors) == 1
     assert "C++" in errors[0] and "nope" in errors[0]
+
+
+def test_work_area_must_group_this_entrys_achievements_once(tmp_path):
+    data = master()
+    entry = data["experience"][0]
+    entry["achievements"].append({"id": "award", "text": "Won.", "tags": ["highlight"],
+                                  "sources": [{"file": "wiki/wgc.md", "quote": "整合 WGC"}]})
+    entry["areas"] = [
+        {"id": "capture", "name": "Capture", "core": True, "achievements": ["wgc-capture", "made-up"]},
+        {"id": "again", "name": "Again", "achievements": ["wgc-capture", "award"]},
+    ]
+    path, raw = write_master(tmp_path, data)
+
+    errors = validate_file(path, SCHEMA, raw, tmp_path / "extracted")
+
+    assert len(errors) == 3
+    assert any("made-up" in e and "not found" in e for e in errors)
+    assert any("wgc-capture" in e and "already in area capture" in e for e in errors)
+    assert any("award" in e and "highlight" in e for e in errors)
+
+
+def test_work_area_quotes_are_checked(tmp_path):
+    data = master()
+    data["experience"][0]["areas"] = [{
+        "id": "capture", "name": "Capture", "achievements": ["wgc-capture"],
+        "sources": [{"file": "wiki/wgc.md", "quote": "不存在的句子"}],
+    }]
+    path, raw = write_master(tmp_path, data)
+
+    errors = validate_file(path, SCHEMA, raw, tmp_path / "extracted")
+
+    assert len(errors) == 1 and "barco/capture" in errors[0] and "verbatim" in errors[0]

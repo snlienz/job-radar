@@ -11,7 +11,8 @@ Use paragraph-level tags (`{%p if x %}`, `{%p for x in y %}`, `{%p endif %}`, `{
 | `summary` | string | `basics.summary`, empty if unset |
 | `highlights` | list of strings | Key Achievements bullets (tailored `highlights[].text`), empty for a master |
 | `skills` | list | `category`, `names` (comma-joined), grouped by category |
-| `experience` | list | `company`, `location_suffix` (`", City"` or empty), `title`, `period`, `bullets` (list of strings) |
+| `experience` | list | `company`, `location_suffix` (`", City"` or empty), `title`, `period`, `areas`, `bullets` (list of strings, the ones in no area) |
+| `job.areas` | list | Work Areas: `name`, `summary_suffix` (`" – summary"` or empty), `bullets` (list of strings) |
 | `education` | list | `school`, `degree` (with field appended), `period` |
 | `certifications` | list | `line` (name, issuer, date joined with commas) |
 | `languages` | string | `English (Fluent), Chinese (Native)`, empty if none |

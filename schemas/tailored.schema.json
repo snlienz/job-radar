@@ -60,7 +60,22 @@
           "title": { "type": "string" },
           "location": { "type": "string" },
           "period": { "$ref": "#/$defs/period" },
-          "achievements": { "type": "array", "items": { "$ref": "#/$defs/bullet" } }
+          "achievements": { "type": "array", "items": { "$ref": "#/$defs/bullet" } },
+          "areas": {
+            "type": "array",
+            "description": "Bullets grouped by master Work Area; every core area of the entry is required",
+            "items": {
+              "type": "object",
+              "required": ["id", "name", "achievements"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "$ref": "#/$defs/id", "description": "Master Work Area id" },
+                "name": { "type": "string", "description": "Copied unchanged from the master area" },
+                "summary": { "type": "string", "description": "Copied unchanged from the master area" },
+                "achievements": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/bullet" } }
+              }
+            }
+          }
         }
       }
     },

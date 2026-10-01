@@ -44,7 +44,18 @@ def render(data: dict) -> str:
     out += ["## Experience", ""]
     for e in data["experience"]:
         out += [f"### {e['title']} — {e['company']} ({_period(e['period'])})", ""]
-        out += _achievements(e["achievements"]) + [""]
+        by_id = {a["id"]: a for a in e["achievements"]}
+        grouped = set()
+        for area in e.get("areas", []):
+            core = " _(core)_" if area.get("core") else ""
+            summary = f" – {area['summary']}" if area.get("summary") else ""
+            out += [f"#### {area['name']}{summary}{core}", ""]
+            out += _achievements([by_id[i] for i in area["achievements"] if i in by_id]) + [""]
+            grouped.update(area["achievements"])
+        rest = [a for a in e["achievements"] if a["id"] not in grouped]
+        if e.get("areas") and rest:
+            out += ["#### Other", ""]
+        out += _achievements(rest) + [""]
 
     if data.get("projects"):
         out += ["## Projects", ""]

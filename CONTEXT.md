@@ -12,6 +12,8 @@
 
 **Highlight** — an Achievement tagged `highlight` in the Master Resume (patent, award, promotion, launch result). Every Tailored Resume lists all Highlights in its Key Achievements section, whatever the job.
 
+**Work Area** — a named group of one experience entry's Achievements in the Master Resume (`areas`, e.g. capture engine, Smart Meeting Flow). A Tailored Resume shows bullets under their area. A `core` Work Area is the main body of work in that job and appears in every Tailored Resume, so no resume hides what the job really was.
+
 **Job Source** — an entry in `config/sources.yaml` (104 or a company careers site) with a fetch `method`: `api`, `fetch` or `browser`.
 
 **Search Profile** — default filters in `config/profile.yaml` (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run.

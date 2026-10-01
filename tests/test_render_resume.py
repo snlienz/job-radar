@@ -109,3 +109,24 @@ def test_highlights_render_in_their_own_section_and_vanish_when_empty(tmp_path):
 
     without = lines(render_docx(resume(), TEMPLATE, tmp_path / "without.docx"))
     assert "KEY ACHIEVEMENTS" not in without
+
+
+def test_work_areas_render_their_name_then_bullets_before_ungrouped_bullets(tmp_path):
+    data = resume()
+    data["experience"][0]["areas"] = [{"id": "capture", "name": "Capture engine", "summary": "macOS and Windows",
+                                       "achievements": [{"source_id": "a1", "text": "Shipped WGC."}]}]
+    data["experience"][0]["achievements"] = [{"source_id": "a2", "text": "Mentored juniors."}]
+
+    text = lines(render_docx(data, TEMPLATE, tmp_path / "resume.docx"))
+
+    assert text.index("Capture engine – macOS and Windows") < text.index("Shipped WGC.") < text.index("Mentored juniors.")
+
+
+def test_master_areas_group_achievements_by_id(tmp_path):
+    data = resume()
+    data["experience"][0]["areas"] = [{"id": "cv", "name": "CV detection", "achievements": ["a2"]}]
+
+    text = lines(render_docx(data, TEMPLATE, tmp_path / "resume.docx"))
+
+    assert text.index("Integrated WGC, 48-hour long run stable.") > text.index("Replaced SIFT with template matching.")
+    assert text.count("Replaced SIFT with template matching.") == 1

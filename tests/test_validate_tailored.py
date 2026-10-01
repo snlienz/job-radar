@@ -205,3 +205,65 @@ def test_every_master_highlight_must_appear_in_highlights(tmp_path):
     errors = check(tmp_path, missing, master)
     assert len(errors) == 1 and "smart-home" in errors[0] and "highlight" in errors[0]
     assert any("smart-home" in e for e in check(tmp_path, in_experience_only, master))
+
+
+def master_with_areas():
+    master = master_data()
+    master["experience"][0]["areas"] = [
+        {"id": "capture", "name": "Capture engine", "summary": "macOS and Windows", "core": True,
+         "achievements": ["wgc-capture"]},
+        {"id": "cv", "name": "CV detection", "achievements": ["sift-swap"]},
+    ]
+    return master
+
+
+def with_areas(areas, bullets=()):
+    data = tailored()
+    data["experience"][0]["achievements"] = list(bullets)
+    data["experience"][0]["areas"] = areas
+    return data
+
+
+CAPTURE = {"id": "capture", "name": "Capture engine", "summary": "macOS and Windows",
+           "achievements": [{"source_id": "wgc-capture", "text": "Shipped WGC."}]}
+
+
+def test_bullets_grouped_in_their_master_area_are_valid(tmp_path):
+    cv = {"id": "cv", "name": "CV detection", "achievements": [{"source_id": "sift-swap", "text": "Swapped."}]}
+
+    assert check(tmp_path, with_areas([CAPTURE, cv]), master_with_areas()) == []
+
+
+def test_core_area_must_be_present(tmp_path):
+    errors = check(tmp_path, with_areas([]), master_with_areas())
+
+    assert len(errors) == 1 and "core area capture" in errors[0]
+
+
+def test_core_area_entry_cannot_be_dropped(tmp_path):
+    master = master_with_areas()
+    data = tailored(experience=[{
+        "id": "ftdi", "company": "FTDI", "title": "Engineer", "period": {"start": "2014", "end": "2018-06"},
+        "achievements": [{"source_id": "smart-home", "text": "Built a stack."}],
+    }])
+
+    errors = check(tmp_path, data, master)
+
+    assert len(errors) == 1 and "barco" in errors[0] and "core areas" in errors[0]
+
+
+def test_area_bullet_must_belong_to_that_area_and_member_cannot_float(tmp_path):
+    wrong = dict(CAPTURE, achievements=[{"source_id": "sift-swap", "text": "Swapped."}])
+    floating = with_areas([CAPTURE], bullets=[{"source_id": "sift-swap", "text": "Swapped."}])
+
+    assert any("sift-swap" in e and "not in area capture" in e
+               for e in check(tmp_path, with_areas([wrong]), master_with_areas()))
+    assert any("sift-swap" in e and "belongs in area cv" in e for e in check(tmp_path, floating, master_with_areas()))
+
+
+def test_area_name_and_summary_are_copied_from_master(tmp_path):
+    renamed = dict(CAPTURE, name="Graphics", summary="Everything")
+
+    errors = check(tmp_path, with_areas([renamed]), master_with_areas())
+
+    assert len(errors) == 2 and all("differs from master" in e for e in errors)

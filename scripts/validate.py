@@ -31,6 +31,44 @@ def _source_text(rel: str, raw_dir: Path, extracted_dir: Path) -> str | None:
     return None
 
 
+def _check_sources(owner: str, sources: list[dict], raw_dir: Path, extracted_dir: Path, texts: dict) -> list[str]:
+    """Each source file exists in raw_dir and its quote appears verbatim in the extracted text."""
+    errors = []
+    for source in sources:
+        rel = source["file"]
+        if not (raw_dir / rel).is_file():
+            errors.append(f"{owner}: source file not found in raw dir: {rel}")
+            continue
+        if rel not in texts:
+            text = _source_text(rel, raw_dir, extracted_dir)
+            texts[rel] = None if text is None else _normalize(text)
+        if texts[rel] is None:
+            errors.append(f"{owner}: no extracted text for {rel} (run scripts/extract.py), cannot check quote")
+        elif _normalize(source["quote"]) not in texts[rel]:
+            errors.append(f"{owner}: quote not found verbatim in {rel}: {source['quote'][:40]!r}")
+    return errors
+
+
+def _check_areas(data: dict, raw_dir: Path, extracted_dir: Path, texts: dict) -> list[str]:
+    """Work Areas group an entry's own Achievements, each into at most one area."""
+    errors = []
+    for entry in data.get("experience", []):
+        owned = {a["id"]: a for a in entry["achievements"]}
+        grouped: dict[str, str] = {}
+        for area in entry.get("areas", []):
+            label = f"area {entry['id']}/{area['id']}"
+            errors += _check_sources(label, area.get("sources", []), raw_dir, extracted_dir, texts)
+            for aid in area["achievements"]:
+                if aid not in owned:
+                    errors.append(f"{label}: achievement {aid} not found in this entry")
+                elif "highlight" in owned[aid].get("tags", []):
+                    errors.append(f"{label}: achievement {aid} is tagged highlight and cannot be in an area")
+                elif aid in grouped:
+                    errors.append(f"{label}: achievement {aid} is already in area {grouped[aid]}")
+                grouped.setdefault(aid, area["id"])
+    return errors
+
+
 def _check_provenance(data: dict, raw_dir: Path, extracted_dir: Path) -> list[str]:
     errors = []
     seen = set()
@@ -39,26 +77,8 @@ def _check_provenance(data: dict, raw_dir: Path, extracted_dir: Path) -> list[st
         if ach["id"] in seen:
             errors.append(f"duplicate achievement id: {ach['id']}")
         seen.add(ach["id"])
-        for source in ach.get("sources", []):
-            if not (raw_dir / source["file"]).is_file():
-                errors.append(
-                    f"achievement {ach['id']}: source file not found in raw dir: {source['file']}"
-                )
-                continue
-            rel = source["file"]
-            if rel not in texts:
-                text = _source_text(rel, raw_dir, extracted_dir)
-                texts[rel] = None if text is None else _normalize(text)
-            if texts[rel] is None:
-                errors.append(
-                    f"achievement {ach['id']}: no extracted text for {rel} "
-                    f"(run scripts/extract.py), cannot check quote"
-                )
-            elif _normalize(source["quote"]) not in texts[rel]:
-                errors.append(
-                    f"achievement {ach['id']}: quote not found verbatim in {rel}: "
-                    f"{source['quote'][:40]!r}"
-                )
+        errors += _check_sources(f"achievement {ach['id']}", ach.get("sources", []), raw_dir, extracted_dir, texts)
+    errors += _check_areas(data, raw_dir, extracted_dir, texts)
     for skill in data.get("skills", []):
         for ref in skill.get("evidence", []):
             if ref not in seen:
@@ -100,7 +120,9 @@ def _check_entries(section: str, label: str, entries: list[dict], master: dict, 
             if field in entry and entry[field] != owner.get(field):
                 errors.append(f"{label} {entry['id']}: {field} differs from master")
         owned = {a["id"]: a for a in owner["achievements"]}
-        for bullet in entry["achievements"]:
+        errors += _check_entry_areas(label, entry, owner)
+        bullets = entry["achievements"] + [b for area in entry.get("areas", []) for b in area["achievements"]]
+        for bullet in bullets:
             sid = bullet["source_id"]
             if sid not in owned:
                 where = "another entry" if sid in _all_ids(master) else "master"
@@ -110,6 +132,34 @@ def _check_entries(section: str, label: str, entries: list[dict], master: dict, 
             if sid in seen:
                 errors.append(f"source_id {sid} used twice")
             seen.add(sid)
+    return errors
+
+
+def _check_entry_areas(label: str, entry: dict, owner: dict) -> list[str]:
+    """Bullets of a master Work Area sit in that area; every core area is present."""
+    errors = []
+    where = f"{label} {entry['id']}"
+    areas = {a["id"]: a for a in owner.get("areas", [])}
+    area_of = {aid: a["id"] for a in owner.get("areas", []) for aid in a["achievements"]}
+    used = set()
+    for area in entry.get("areas", []):
+        master_area = areas.get(area["id"])
+        if master_area is None:
+            errors.append(f"{where}: area {area['id']} not found in master")
+            continue
+        used.add(area["id"])
+        for field in ("name", "summary"):
+            if area.get(field) != master_area.get(field):
+                errors.append(f"{where}: area {area['id']} {field} differs from master")
+        for bullet in area["achievements"]:
+            if area_of.get(bullet["source_id"]) != area["id"]:
+                errors.append(f"{where}: source_id {bullet['source_id']} is not in area {area['id']}")
+    for bullet in entry["achievements"]:
+        if bullet["source_id"] in area_of:
+            errors.append(f"{where}: source_id {bullet['source_id']} belongs in area {area_of[bullet['source_id']]}")
+    for area in areas.values():
+        if area.get("core") and area["id"] not in used:
+            errors.append(f"{where}: core area {area['id']} is missing")
     return errors
 
 
@@ -145,6 +195,10 @@ def _check_against_master(data: dict, master: dict) -> list[str]:
     seen: set = set()
     errors += _check_highlights(data.get("highlights", []), master, seen)
     errors += _check_entries("experience", "experience", data["experience"], master, seen)
+    present = {e["id"] for e in data["experience"]}
+    for entry in master.get("experience", []):
+        if entry["id"] not in present and any(a.get("core") for a in entry.get("areas", [])):
+            errors.append(f"experience {entry['id']}: has core areas but is missing")
     errors += _check_entries("projects", "project", data.get("projects", []), master, seen)
     master_skills = {s["name"].casefold() for s in master.get("skills", [])}
     for skill in data.get("skills", []):

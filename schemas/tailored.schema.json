@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tailored.schema.json",
+  "title": "Tailored Resume",
+  "description": "English resume for one Job Posting. Same shape as the Master Resume so render_resume.py can render it, but every bullet cites a Master Achievement id in source_id and nothing else is new.",
+  "type": "object",
+  "required": ["basics", "experience"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "period": {
+      "type": "object",
+      "required": ["start"],
+      "additionalProperties": false,
+      "properties": {
+        "start": { "type": "string", "pattern": "^\\d{4}(-\\d{2})?$" },
+        "end": { "type": "string", "pattern": "^(\\d{4}(-\\d{2})?|present)$" }
+      }
+    },
+    "bullet": {
+      "type": "object",
+      "required": ["source_id", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "source_id": { "$ref": "#/$defs/id", "description": "Master Achievement id this bullet is selected or rephrased from" },
+        "text": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "properties": {
+    "job": { "type": "string", "description": "Job Posting this resume targets, e.g. nvidia-12345" },
+    "basics": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string" },
+        "headline": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "location": { "type": "string" },
+        "links": { "type": "array", "items": { "type": "string" } },
+        "summary": { "type": "string" }
+      }
+    },
+    "experience": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "company", "title", "period", "achievements"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id", "description": "Master experience id" },
+          "company": { "type": "string" },
+          "title": { "type": "string" },
+          "location": { "type": "string" },
+          "period": { "$ref": "#/$defs/period" },
+          "achievements": { "type": "array", "items": { "$ref": "#/$defs/bullet" } }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "achievements"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id", "description": "Master project id" },
+          "name": { "type": "string" },
+          "role": { "type": "string" },
+          "period": { "$ref": "#/$defs/period" },
+          "achievements": { "type": "array", "items": { "$ref": "#/$defs/bullet" } }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "type": "string" }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["school", "degree"],
+        "additionalProperties": false,
+        "properties": {
+          "school": { "type": "string" },
+          "degree": { "type": "string" },
+          "field": { "type": "string" },
+          "period": { "$ref": "#/$defs/period" }
+        }
+      }
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "issuer": { "type": "string" },
+          "date": { "type": "string" }
+        }
+      }
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "level": { "type": "string" }
+        }
+      }
+    }
+  }
+}

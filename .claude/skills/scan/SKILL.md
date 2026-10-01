@@ -54,7 +54,7 @@ Fix every error before continuing, then commit the batch's files as scanned (pat
 python scripts/extract.py --commit <path> [<path> ...]
 ```
 
-Validation checks the schema, that each source `file` exists in `data/raw/`, and that Achievement ids are unique. `render_master.py` writes `data/master.md` for the user to read.
+Validation checks the schema, that Achievement ids are unique, that each source `file` exists in `data/raw/`, that each `quote` appears verbatim (whitespace-insensitive) in that file's extracted text, and that every skill `evidence` id exists. `render_master.py` writes `data/master.md` for the user to read.
 
 ## 5. Gap Interview
 

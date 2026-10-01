@@ -1,6 +1,6 @@
 import json
 
-from extract import scan
+from extract import commit, scan
 
 
 def make_dirs(tmp_path):
@@ -9,7 +9,7 @@ def make_dirs(tmp_path):
     return raw, tmp_path / "extracted", tmp_path / "manifest.json"
 
 
-def test_new_markdown_file_is_extracted_and_recorded_in_manifest(tmp_path):
+def test_new_markdown_file_is_extracted_and_recorded_in_manifest_on_commit(tmp_path):
     raw, extracted, manifest = make_dirs(tmp_path)
     (raw / "weekly").mkdir()
     (raw / "weekly" / "w1.md").write_text("本週完成 WGC 整合\n", encoding="utf-8")
@@ -19,6 +19,8 @@ def test_new_markdown_file_is_extracted_and_recorded_in_manifest(tmp_path):
     assert result.new == ["weekly/w1.md"]
     assert result.changed == []
     assert (extracted / "weekly" / "w1.md.txt").read_text(encoding="utf-8") == "本週完成 WGC 整合\n"
+    assert not manifest.exists()
+    commit(raw, manifest, result.new)
     entry = json.loads(manifest.read_text(encoding="utf-8"))["weekly/w1.md"]
     assert len(entry["sha256"]) == 64
     assert entry["scanned_at"]
@@ -27,7 +29,7 @@ def test_new_markdown_file_is_extracted_and_recorded_in_manifest(tmp_path):
 def test_rerun_on_unchanged_files_processes_nothing(tmp_path):
     raw, extracted, manifest = make_dirs(tmp_path)
     (raw / "a.md").write_text("alpha", encoding="utf-8")
-    scan(raw, extracted, manifest)
+    commit(raw, manifest, scan(raw, extracted, manifest).new)
     first_scanned_at = json.loads(manifest.read_text(encoding="utf-8"))["a.md"]["scanned_at"]
     (extracted / "a.md.txt").unlink()
 
@@ -43,7 +45,7 @@ def test_modified_file_is_reported_as_changed_and_reextracted(tmp_path):
     raw, extracted, manifest = make_dirs(tmp_path)
     (raw / "a.md").write_text("alpha", encoding="utf-8")
     (raw / "b.md").write_text("beta", encoding="utf-8")
-    scan(raw, extracted, manifest)
+    commit(raw, manifest, scan(raw, extracted, manifest).new)
 
     (raw / "a.md").write_text("alpha v2", encoding="utf-8")
     (raw / "c.md").write_text("gamma", encoding="utf-8")
@@ -52,6 +54,34 @@ def test_modified_file_is_reported_as_changed_and_reextracted(tmp_path):
     assert result.changed == ["a.md"]
     assert result.new == ["c.md"]
     assert (extracted / "a.md.txt").read_text(encoding="utf-8") == "alpha v2"
+
+
+def test_uncommitted_files_are_reported_again_on_next_scan(tmp_path):
+    raw, extracted, manifest = make_dirs(tmp_path)
+    (raw / "a.md").write_text("alpha", encoding="utf-8")
+    (raw / "b.md").write_text("beta", encoding="utf-8")
+
+    first = scan(raw, extracted, manifest)
+    second = scan(raw, extracted, manifest)
+
+    assert first.new == second.new == ["a.md", "b.md"]
+
+
+def test_commit_marks_only_given_files_and_modification_reopens_them(tmp_path):
+    raw, extracted, manifest = make_dirs(tmp_path)
+    (raw / "a.md").write_text("alpha", encoding="utf-8")
+    (raw / "b.md").write_text("beta", encoding="utf-8")
+    scan(raw, extracted, manifest)
+
+    commit(raw, manifest, ["a.md"])
+    assert scan(raw, extracted, manifest).new == ["b.md"]
+
+    commit(raw, manifest, ["b.md"])
+    result = scan(raw, extracted, manifest)
+    assert result.new == [] and result.changed == []
+
+    (raw / "a.md").write_text("alpha v2", encoding="utf-8")
+    assert scan(raw, extracted, manifest).changed == ["a.md"]
 
 
 def extracted_text(tmp_path, name):
@@ -159,5 +189,5 @@ def test_attachments_folders_and_unsupported_formats_are_skipped(tmp_path):
 
     assert result.new == ["wiki/page.md"]
     assert result.skipped == ["demo.mov", "tool.EXE"]
-    assert list(json.loads(manifest.read_text(encoding="utf-8"))) == ["wiki/page.md"]
+    assert not manifest.exists()
     assert not (extracted / "wiki" / "attachments").exists()

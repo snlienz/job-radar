@@ -13,7 +13,7 @@ Build `data/master.yaml` from Raw Records. Read `CONTEXT.md` and `docs/adr/0002-
 python scripts/extract.py
 ```
 
-Prints `new` / `changed` files and writes text to `data/extracted/<path>.txt`. Unchanged files are skipped via `data/manifest.json`, and `attachments/` folders and non-text formats (png, mov…) are ignored. If nothing is new or changed, say so and stop.
+Prints `new` / `changed` files and writes text to `data/extracted/<path>.txt`. Files already in `data/manifest.json` are skipped, but extract never writes the manifest: a file only counts as scanned after you commit it (step 4), so an interrupted scan reports the same files again next time. `attachments/` folders and non-text formats (png, mov…) are ignored. If nothing is new or changed, say so and stop.
 
 Read **only** the extracted text of new/changed files, never the whole of `data/extracted/`.
 
@@ -48,7 +48,13 @@ python scripts/validate.py data/master.yaml
 python scripts/render_master.py
 ```
 
-Fix every error before continuing. It checks the schema, that each source `file` exists in `data/raw/`, and that Achievement ids are unique. `render_master.py` writes `data/master.md` for the user to read.
+Fix every error before continuing, then commit the batch's files as scanned (paths exactly as printed by extract, only the files merged in this batch):
+
+```
+python scripts/extract.py --commit <path> [<path> ...]
+```
+
+Validation checks the schema, that each source `file` exists in `data/raw/`, and that Achievement ids are unique. `render_master.py` writes `data/master.md` for the user to read.
 
 ## 5. Gap Interview
 

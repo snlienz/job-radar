@@ -86,6 +86,27 @@ def test_write_creates_job_files_and_sorted_index(tmp_path):
     assert not (jobs / "nvidia-c.md").exists()
 
 
+def test_write_includes_interview_odds_risks_and_prep(tmp_path):
+    jobs = tmp_path / "jobs"
+    cands = [{**posting(id="a", url="https://x.test/a"), "key": "nvidia-a"},
+             {**posting(id="b", url="https://x.test/b"), "key": "nvidia-b"}]
+    scores = {"nvidia-a": score(70, interview_odds="55-65%", risks=["Salary below current level"],
+                                prep=["Try the vendor toolchain"]),
+              "nvidia-b": score(65)}
+
+    run_write(jobs, cands, scores)
+
+    meta, body = read_job(jobs / "nvidia-a.md")
+    assert meta["interview_odds"] == "55-65%"
+    assert "**Interview odds:** 55-65%" in body
+    assert "**Risks**\n- Salary below current level" in body and "**Prep**\n- Try the vendor toolchain" in body
+    meta_b, body_b = read_job(jobs / "nvidia-b.md")
+    assert "interview_odds" not in meta_b and "**Risks**" not in body_b and "Interview odds" not in body_b
+    lines = (jobs / "INDEX.md").read_text(encoding="utf-8").splitlines()
+    assert lines[2].startswith("| Score | Odds |")
+    assert lines[4].startswith("| 70 | 55-65% |") and lines[5].startswith("| 65 |  |")
+
+
 def test_rerun_does_not_duplicate_or_overwrite(tmp_path):
     jobs = tmp_path / "jobs"
     cand = {**posting(), "key": "nvidia-jr1"}

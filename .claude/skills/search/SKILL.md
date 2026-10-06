@@ -53,8 +53,16 @@ Write `data/search/<date>/scores.json`, keyed by candidate `key`:
 
 ```json
 {"nvidia-jr2014555": {"score": 78, "summary": "one or two sentences on the fit",
-  "strengths": ["short, specific"], "gaps": ["short, specific"]}}
+  "interview_odds": "55-65%",
+  "strengths": ["short, specific"], "gaps": ["short, specific"],
+  "risks": ["short, specific"], "prep": ["short, specific"]}}
 ```
+
+- `strengths`: each cites the concrete evidence from the Master Resume (employer, project or result), e.g. "Application Engineer at FTDI matches the customer-support duty", not just "C++".
+- `gaps`: each names the JD requirement the Master Resume does not cover.
+- `interview_odds`: an estimated range for getting past the interviews, as a percentage string. Base it on the fit and the risks, and on interview reports (interview.tw, PTT, Glassdoor) when you have them. It is a judgement, not a statistic.
+- `risks`: anything that hurts the odds or the offer besides skills: the role is pitched below the candidate's level (overqualified), the salary is likely below the current level, the commute, the company's stability. Leave the list empty when there is none.
+- `prep`: one to three concrete actions that would close the biggest gap before the interview, such as a weekend project with the company's public SDK or which topics to review.
 
 For a large candidate list, score in batches of about 10 and keep each batch's JSON on disk as you go.
 
@@ -68,6 +76,6 @@ Writes `jobs/<key>.md` (frontmatter `url, status: new, score, fetched_at, …`, 
 
 ## 6. Report
 
-Say how many were fetched per source, how many survived the filter, how many were listed, and show the top five from `jobs/INDEX.md` (score, company, title, location). Name any source that was blocked, skipped or failed. Suggest `/tailor jobs/<key>.md` for the best match.
+Answer in the user's language (Traditional Chinese if they wrote in Chinese). Say how many were fetched per source, how many survived the filter and how many were listed. Show the top five from `jobs/INDEX.md` as a table (score, interview odds, company, title, location). Then, for each of the top three, give a short breakdown with headings for strengths (優勢), gaps (缺口), risks (風險) and, where it helps, prep (準備). Name any source that was blocked, skipped or failed. Suggest `/tailor jobs/<key>.md` for the best match.
 
 Postings that score below `min_score` are not saved, so a later search fetches and scores them again. Lowering `min_score` later means searching again.

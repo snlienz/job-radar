@@ -224,3 +224,6 @@ jobs/*
 !jobs/.gitkeep
 output/
 ~$*.docx
+companies/*
+!companies/.gitkeep
+config/private.yaml

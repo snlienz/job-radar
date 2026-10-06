@@ -1,11 +1,13 @@
 ---
 name: search
-description: Find Job Postings from the configured Job Sources (or one careers page with url=), filter them by the Search Profile, score each against the Master Resume and list them in jobs/. Use when the user runs /search, optionally with overrides like keywords=firmware min_score=70, or gives a careers page URL to score.
+description: Find Job Postings from the configured Job Sources (or one careers page with url=), filter them by the Search Profile, score each against the Master Resume and list them in jobs/, optionally researching the top companies (research=N). Use when the user runs /search, optionally with overrides like keywords=firmware min_score=70, or gives a careers page URL to score.
 ---
 
 # /search
 
 Read `CONTEXT.md` and `docs/adr/0003-per-source-fetch-method.md` first. Arguments are optional `key=value` overrides of `config/profile.yaml`: `keywords=a,b` (must match title or JD), `exclude=x,y`, `location=Taipei,Hsinchu`, `industries=…`, `seniority=…`, `min_score=70`. Pass them unchanged to the scripts below. Work in `data/search/<YYYY-MM-DD>/` (gitignored).
+
+`research=N` is not a profile override: take it out before passing the rest on. It runs company research after step 5 (see step 6).
 
 If neither `config/profile.yaml` `keywords.include` nor a `keywords=` override gives a keyword, stop and ask the user for some before fetching: without one every posting in the locations is fetched and scored. The exception is URL mode below.
 
@@ -82,8 +84,12 @@ python scripts/search_jobs.py write data/search/<date>/candidates.json data/sear
 
 Writes `jobs/<key>.md` (frontmatter `url, status: new, score, fetched_at, …`, then Fit, Gaps and the JD) for each score at or above `min_score`, never overwriting an existing file or its `status`, and regenerates `jobs/INDEX.md` sorted by score with `ignored` jobs hidden. It writes nothing if any score is not an integer 0-100, and exits non-zero if a candidate has no score.
 
-## 6. Report
+## 6. Company research (only with `research=N`)
 
-Answer in the user's language (Traditional Chinese if they wrote in Chinese). Say how many were fetched per source, how many survived the filter and how many were listed. Show the top five from `jobs/INDEX.md` as a table (score, interview odds, company, title, location). Then, for each of the top three, give a short breakdown with headings for strengths (優勢), gaps (缺口), risks (風險) and, where it helps, prep (準備). Name any source that was blocked, skipped or failed. Suggest `/tailor jobs/<key>.md` for the best match.
+Take the jobs written in step 5, highest score first, and pick the first N distinct companies. Run the `/research` skill (`.claude/skills/research/SKILL.md`) for each company. Pass the company name, so that every job of the company is written back. A company whose profile is still fresh costs almost nothing. Without `research=`, skip this step; the user can run `/research jobs/<key>.md` later.
+
+## 7. Report
+
+Answer in the user's language (Traditional Chinese if they wrote in Chinese). Say how many were fetched per source, how many survived the filter and how many were listed. Show the top five from `jobs/INDEX.md` as a table (score, interview odds, company, title, location, plus pay and trend for jobs that have them). Then, for each of the top three, give a short breakdown with headings for strengths (優勢), gaps (缺口), risks (風險) and, where it helps, prep (準備). Name any source that was blocked, skipped or failed. If step 6 ran, add each researched company's Trend and any `[company]` risks to its jobs' breakdowns. Suggest `/tailor jobs/<key>.md` for the best match and, if step 6 did not run, `/research jobs/<key>.md` for it.
 
 Postings that score below `min_score` are not saved, so a later search fetches and scores them again. Lowering `min_score` later means searching again.

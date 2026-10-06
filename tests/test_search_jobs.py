@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from search_jobs import (filter_postings, known_jobs, posting_key, read_job, rebuild_index, set_fields,
-                         set_status, write_jobs)
+from search_jobs import (filter_postings, find_job, known_jobs, posting_key, read_job, rebuild_index,
+                         set_fields, set_status, write_jobs)
 from search_profile import load_profile
 
 
@@ -225,3 +225,11 @@ def test_set_fields_never_changes_score_or_url(tmp_path):
         with pytest.raises(ValueError, match="fixed"):
             set_fields(jobs, "nvidia-jr1", {field: "1"})
     assert read_job(jobs / "nvidia-jr1.md")[0]["score"] == 80
+
+
+def test_find_job_by_url_ignores_trailing_slash_and_fragment(tmp_path):
+    jobs = tmp_path / "jobs"
+    run_write(jobs, [{**posting(), "key": "nvidia-jr1"}], {"nvidia-jr1": score(80)})
+
+    assert find_job(jobs, "https://x.test/jr1/#apply") == jobs / "nvidia-jr1.md"
+    assert find_job(jobs, "https://x.test/other") is None

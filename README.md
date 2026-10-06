@@ -54,7 +54,7 @@ Already have a company's careers page? `/search url=https://www.kneron.com/tw/ca
 
 ### 5. Research a company — `/research`
 
-`/research jobs/<company>-<id>.md` (or `/research 輝達`) looks up the company's pay, whether it is growing or shrinking, and its work culture on PTT, Dcard, GoodJob, Glassdoor, 104, MOPS and the news, with a source and date for each finding. The result goes to `companies/<slug>.md` and is reused until it goes stale (90 days for trend and culture, 180 for pay; add `refresh` to redo it). Every job of that company gets a Company section, `[company]` risks and the **Pay** and **Trend** columns in `INDEX.md`; its Fit Score is never changed. `/search research=3` does this for the top three companies of a search.
+`/research jobs/<company>-<id>.md` (or `/research 輝達`, or a posting URL) looks up the company's pay, whether it is growing or shrinking, and its work culture on PTT, Dcard, GoodJob, Glassdoor, 104, MOPS and the news, with a source and date for each finding. The result goes to `companies/<slug>.md` and is reused until it goes stale (90 days for trend and culture, 180 for pay; add `refresh` to redo it). Every job of that company gets a Company section, `[company]` risks and the **Pay** and **Trend** columns in `INDEX.md`; its Fit Score is never changed. `/search research=3` does this for the top three companies of a search. A URL not yet in `jobs/` gets the company researched and the role's pay in the reply; run `/search url=<url>` to save and score it, then `/research <company>` to add the profile to it.
 
 To have pay compared with your own, copy [`config/private.example.yaml`](config/private.example.yaml) to `config/private.yaml` (gitignored) and fill it in. Glassdoor and Dcard are read in your Chrome, so log in there first if you want them included.
 
@@ -83,7 +83,7 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 |---|---|
 | `/scan` | Incrementally extract `data/raw/` into `data/master.yaml`, then ask about gaps |
 | `/search [overrides]` | Fetch Job Postings from `config/sources.yaml`, filter by `config/profile.yaml`, score, write `jobs/` |
-| `/research <job or company> [refresh]` | Research a company's pay, trend and culture into `companies/`, add it to its jobs |
+| `/research <job, company or URL> [refresh]` | Research a company's pay, trend and culture into `companies/`, add it to its jobs |
 | `/tailor <job>` | Build a Tailored Resume for one Job Posting into `output/<company>-<id>/` |
 | `/add-source <url>` | Add a company careers site and detect its fetch method |
 | `/add-template <docx>` | Convert a plain `.docx` CV into a tagged CV Template in `templates/` |

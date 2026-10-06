@@ -6,6 +6,7 @@
   status  <key or jobs/<key>.md> <status>                   set a Job Posting's status, then reindex
   set     <key or jobs/<key>.md> field=value ...            set frontmatter fields written by /research
                                                             (pay, company_profile, interview_odds), then reindex
+  lookup  <url>                                             print jobs/<key>.md for that posting URL (exit 1 if none)
 """
 import argparse
 import json
@@ -59,6 +60,12 @@ def known_jobs(jobs_dir: Path) -> dict[str, dict]:
         if meta.get("url"):
             jobs[normalize_url(meta["url"])] = {**meta, "file": path.name}
     return jobs
+
+
+def find_job(jobs_dir: Path, url: str) -> Path | None:
+    """The job file whose `url` is this URL (ignoring a trailing slash or #fragment), any status."""
+    job = known_jobs(jobs_dir).get(normalize_url(url))
+    return Path(jobs_dir) / job["file"] if job else None
 
 
 def set_fields(jobs_dir: Path, job: str, fields: dict[str, str]) -> Path:
@@ -222,7 +229,8 @@ def rebuild_index(jobs_dir: Path, companies_dir: Path | None = None) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": [], "status": [], "set": []}
+    positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": [], "status": [], "set": [],
+                   "lookup": []}
     for name, names in positionals.items():
         p = sub.add_parser(name)
         for arg in names:
@@ -236,7 +244,9 @@ def main() -> int:
         if name == "set":
             p.add_argument("job", help="job key or jobs/<key>.md")
             p.add_argument("fields", nargs="+", help="field=value")
-        if name not in ("index", "status", "set"):
+        if name == "lookup":
+            p.add_argument("url")
+        if name not in ("index", "status", "set", "lookup"):
             p.add_argument("--profile", type=Path, default=Path("config/profile.yaml"))
             p.add_argument("overrides", nargs="*")
     args = parser.parse_args()
@@ -261,7 +271,12 @@ def main() -> int:
             return 1
         print(f"{path}: set {', '.join(fields)}; index rebuilt")
         return 0
-    profile = load_profile(args.profile, args.overrides)
+    if args.cmd == "lookup":
+        path = find_job(args.jobs, args.url)
+        if path:
+            print(path.as_posix())
+        return 0 if path else 1
+    profile =load_profile(args.profile, args.overrides)
     if args.cmd == "filter":
         postings = json.loads(args.postings.read_text(encoding="utf-8"))["postings"]
         keep, dropped = filter_postings(postings, profile, args.jobs)

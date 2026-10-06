@@ -52,6 +52,14 @@ def test_hard_filter_keywords_and_locations(tmp_path):
     assert "location" in reasons["nvidia-elsewhere"]
 
 
+def test_exclude_keywords_match_the_title_only(tmp_path):
+    jd = "Firmware role. Intern or full time; experience via an internship counts."
+
+    keep, _ = filter_postings([posting(jd_text=jd)], PROFILE, tmp_path)
+
+    assert len(keep) == 1
+
+
 def test_empty_profile_keeps_everything(tmp_path):
     empty = {"include": [], "exclude": [], "locations": []}
 

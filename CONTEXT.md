@@ -16,7 +16,7 @@
 
 **Job Source** — an entry in `config/sources.yaml` (104 or a company careers site) with a fetch `method`: `api`, `fetch` or `browser`.
 
-**Search Profile** — default filters in `config/profile.yaml` (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run.
+**Search Profile** — default filters in `config/profile.yaml` (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run. Include keywords match the title or JD; exclude keywords match the title only. `/search url=<careers page>` scores one page's jobs without the include filter.
 
 **Job Posting** — one opening, stored as `jobs/<company>-<id>.md` with the JD, Fit analysis and a `status`. Deduplicated by URL.
 

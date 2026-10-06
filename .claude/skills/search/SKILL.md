@@ -1,13 +1,21 @@
 ---
 name: search
-description: Find Job Postings from the configured Job Sources, filter them by the Search Profile, score each against the Master Resume and list them in jobs/. Use when the user runs /search, optionally with overrides like keywords=firmware min_score=70.
+description: Find Job Postings from the configured Job Sources (or one careers page with url=), filter them by the Search Profile, score each against the Master Resume and list them in jobs/. Use when the user runs /search, optionally with overrides like keywords=firmware min_score=70, or gives a careers page URL to score.
 ---
 
 # /search
 
 Read `CONTEXT.md` and `docs/adr/0003-per-source-fetch-method.md` first. Arguments are optional `key=value` overrides of `config/profile.yaml`: `keywords=a,b` (must match title or JD), `exclude=x,y`, `location=Taipei,Hsinchu`, `industries=…`, `seniority=…`, `min_score=70`. Pass them unchanged to the scripts below. Work in `data/search/<YYYY-MM-DD>/` (gitignored).
 
-If neither `config/profile.yaml` `keywords.include` nor a `keywords=` override gives a keyword, stop and ask the user for some before fetching: without one every posting in the locations is fetched and scored.
+If neither `config/profile.yaml` `keywords.include` nor a `keywords=` override gives a keyword, stop and ask the user for some before fetching: without one every posting in the locations is fetched and scored. The exception is URL mode below.
+
+### URL mode: `/search url=<careers page>`
+
+The user already has the page, so skip keyword searching. `url=` is not a profile override: take it out of the arguments before passing the rest on.
+- Step 1 becomes `python scripts/fetch_jobs.py --url <url> [--name <Company>] --out data/search/<date>/postings.json`. It takes every job link in the page's section, so a page that is itself a posting with a sidebar of the others works. Pass `--name` when the host name is not the company name. A `BLOCKED` result (104 company pages usually are) or 0 postings (a JS-rendered page) means you read the page through the browser as in step 2.
+- Before step 3, fill in every empty `location` in `postings.json` from its `jd_text` (e.g. a "工作地點" or "Location" line) so the location filter can work.
+- In step 3, add `keywords=` to the overrides so the include filter is off. Excluded titles, locations and jobs already in `jobs/` still drop out.
+- Remove any candidate that is not a single job, such as a listing, benefits or contact page, before scoring. Treat a posting tied to a past event (e.g. "2024 Open House") as likely stale and say so in `risks`.
 
 ## 1. Fetch (api / fetch sources)
 
@@ -34,7 +42,7 @@ If the browser is unavailable or a site needs a login the user has not done, say
 python scripts/search_jobs.py filter data/search/<date>/postings.json --out data/search/<date>/candidates.json [overrides]
 ```
 
-Drops postings with no include keyword in title/JD, any exclude keyword, an unwanted location, a URL already in `jobs/` (any status) or a status of `ignored`, and duplicates within the run. Each candidate gets a `key` (`<company>-<id>` slug). The dropped list goes to stderr; mention the counts, not every line.
+Drops postings with no include keyword in title/JD, an exclude keyword in the title, an unwanted location, a URL already in `jobs/` (any status) or a status of `ignored`, and duplicates within the run. Each candidate gets a `key` (`<company>-<id>` slug). The dropped list goes to stderr; mention the counts, not every line.
 
 ## 4. Score
 

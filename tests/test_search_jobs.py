@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from search_jobs import (filter_postings, known_jobs, posting_key, read_job, rebuild_index, set_status,
-                         write_jobs)
+from search_jobs import (filter_postings, known_jobs, posting_key, read_job, rebuild_index, set_fields,
+                         set_status, write_jobs)
 from search_profile import load_profile
 
 
@@ -200,3 +200,28 @@ def test_set_status_rejects_unknown_status_and_missing_job(tmp_path):
     with pytest.raises(FileNotFoundError):
         set_status(jobs, "nvidia-nope", "applied")
     assert read_job(jobs / "nvidia-jr1.md")[0]["status"] == "new"
+
+
+def test_set_fields_adds_company_research_and_index_shows_pay_and_trend(tmp_path):
+    jobs, companies = tmp_path / "jobs", tmp_path / "companies"
+    companies.mkdir()
+    (companies / "nvidia.md").write_text("---\nname: NVIDIA\ntrend: growing\n---\n# NVIDIA\n", encoding="utf-8")
+    run_write(jobs, [{**posting(), "key": "nvidia-jr1"}], {"nvidia-jr1": score(80, interview_odds="50-60%")})
+
+    set_fields(jobs, "nvidia-jr1", {"company_profile": "nvidia", "pay": "2.4M (n=5)", "interview_odds": "40-50%"})
+
+    meta, _ = read_job(jobs / "nvidia-jr1.md")
+    assert meta["pay"] == "2.4M (n=5)" and meta["interview_odds"] == "40-50%" and meta["score"] == 80
+    lines = (jobs / "INDEX.md").read_text(encoding="utf-8").splitlines()
+    assert lines[2].startswith("| Score | Odds | Pay | Trend | Status |")
+    assert lines[4].startswith("| 80 | 40-50% | 2.4M (n=5) | ↑ | new |")
+
+
+def test_set_fields_never_changes_score_or_url(tmp_path):
+    jobs = tmp_path / "jobs"
+    run_write(jobs, [{**posting(), "key": "nvidia-jr1"}], {"nvidia-jr1": score(80)})
+
+    for field in ("score", "url"):
+        with pytest.raises(ValueError, match="fixed"):
+            set_fields(jobs, "nvidia-jr1", {field: "1"})
+    assert read_job(jobs / "nvidia-jr1.md")[0]["score"] == 80

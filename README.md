@@ -52,13 +52,19 @@ Override the profile for one run: `/search keywords=firmware,embedded location=H
 
 Already have a company's careers page? `/search url=https://www.kneron.com/tw/careers/1/` scores every job on it (no keyword search or keyword filter; excluded titles, locations and jobs already in `jobs/` still drop out).
 
-### 5. Make a resume — `/tailor jobs/<company>-<id>.md`
+### 5. Research a company — `/research`
+
+`/research jobs/<company>-<id>.md` (or `/research 輝達`) looks up the company's pay, whether it is growing or shrinking, and its work culture on PTT, Dcard, GoodJob, Glassdoor, 104, MOPS and the news, with a source and date for each finding. The result goes to `companies/<slug>.md` and is reused until it goes stale (90 days for trend and culture, 180 for pay; add `refresh` to redo it). Every job of that company gets a Company section, `[company]` risks and the **Pay** and **Trend** columns in `INDEX.md`; its Fit Score is never changed. `/search research=3` does this for the top three companies of a search.
+
+To have pay compared with your own, copy [`config/private.example.yaml`](config/private.example.yaml) to `config/private.yaml` (gitignored) and fill it in. Glassdoor and Dcard are read in your Chrome, so log in there first if you want them included.
+
+### 6. Make a resume — `/tailor jobs/<company>-<id>.md`
 
 Claude picks the relevant Achievements, rewords them for the JD without inventing anything, validates every bullet against the Master Resume and renders `output/<company>-<id>/resume.docx` and `resume.pdf`.
 
 Before you send it, read **`changes.md`** in the same folder: what was selected, rephrased and dropped, and which JD requirements your Master Resume cannot support. You can also pass a pasted JD or a URL instead of a job file.
 
-### 6. Track your applications
+### 7. Track your applications
 
 Each job file has a `status` in its frontmatter:
 
@@ -77,6 +83,7 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 |---|---|
 | `/scan` | Incrementally extract `data/raw/` into `data/master.yaml`, then ask about gaps |
 | `/search [overrides]` | Fetch Job Postings from `config/sources.yaml`, filter by `config/profile.yaml`, score, write `jobs/` |
+| `/research <job or company> [refresh]` | Research a company's pay, trend and culture into `companies/`, add it to its jobs |
 | `/tailor <job>` | Build a Tailored Resume for one Job Posting into `output/<company>-<id>/` |
 | `/add-source <url>` | Add a company careers site and detect its fetch method |
 | `/add-template <docx>` | Convert a plain `.docx` CV into a tagged CV Template in `templates/` |
@@ -88,10 +95,11 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 | `data/raw/` | Your records (input) |
 | `data/master.yaml`, `data/master.md` | Master Resume and its readable view |
 | `jobs/`, `jobs/INDEX.md` | Job Postings found by `/search` |
+| `companies/<slug>.md` | Company Profiles found by `/research` |
 | `output/<company>-<id>/` | Tailored Resumes with `changes.md` |
 | `config/` | Search Profile and Job Sources |
 | `templates/` | CV Templates (`default.docx` is used unless you ask for another) |
 
 ## Privacy
 
-`data/`, `jobs/` and `output/` are gitignored, so your records are never committed. They are read by Claude when you run the commands, so the text you put in `data/raw/` is sent to Claude as part of the conversation.
+`data/`, `jobs/`, `companies/`, `output/` and `config/private.yaml` are gitignored, so your records and salary are never committed. They are read by Claude when you run the commands, so the text you put in `data/raw/` is sent to Claude as part of the conversation.

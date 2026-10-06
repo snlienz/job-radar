@@ -22,6 +22,10 @@
 
 **Fit Score** — 0-100 rubric score of a Job Posting against the Master Resume (skills, seniority, industry, responsibilities), plus listed strengths and gaps, and optionally an estimated interview-odds range, risks (such as overqualification, salary or commute) and prep actions.
 
+**Company Profile** — `companies/<slug>.md`, what `/research` found about one company: its **Trend** (growing / flat / shrinking / unknown, from revenue YoY and layoff or hiring news), its culture on four facets (hours, management, promotion, flexibility) and its reported pay, each with dated, sourced evidence and its own `checked` date so stale sections are researched again. Keyed by the company's English name, with `aliases` (Chinese name, local subsidiary); a Taiwan branch shares its parent's profile. Gitignored.
+
+**Company research** — what `/research` adds to a Job Posting: a Company section, a `pay` estimate for that role, `[company]` risks and, if they change the odds, a new `interview_odds`. It never changes the Fit Score, which only measures resume-to-JD fit. Pay is compared with the gitignored `config/private.yaml` salary.
+
 **Status** — `new` → `shortlisted` → `tailored` → `applied` → `interview` → `rejected`/`offer`; or `ignored` (hidden from future searches).
 
 **CV Template** — a `.docx` in `templates/` containing docxtpl Jinja tags.

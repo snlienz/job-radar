@@ -4,6 +4,8 @@
   write   candidates.json scores.json [overrides]           jobs/<key>.md for scores >= min_score
   index                                                     regenerate jobs/INDEX.md only
   status  <key or jobs/<key>.md> <status>                   set a Job Posting's status, then reindex
+  set     <key or jobs/<key>.md> field=value ...            set frontmatter fields written by /research
+                                                            (pay, company_profile, interview_odds), then reindex
 """
 import argparse
 import json
@@ -14,6 +16,7 @@ from pathlib import Path
 
 import yaml
 
+from companies import trend_arrow
 from search_profile import load_profile
 
 CITY_ALIASES = {  # profile names are English; postings are often Chinese
@@ -21,7 +24,8 @@ CITY_ALIASES = {  # profile names are English; postings are often Chinese
     "tainan": ["台南", "臺南"], "kaohsiung": ["高雄"], "taoyuan": ["桃園"],
 }
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n?(.*)\Z", re.S)
-STATUSES = ("new", "shortlisted", "tailored", "applied", "interview", "rejected", "offer", "ignored")
+FIXED_FIELDS = {"score", "url"}  # the Fit Score is never rescored; url is the dedupe key
+STATUSES = ("new","shortlisted", "tailored", "applied", "interview", "rejected", "offer", "ignored")
 
 
 def slug(text: str) -> str:
@@ -57,10 +61,10 @@ def known_jobs(jobs_dir: Path) -> dict[str, dict]:
     return jobs
 
 
-def set_status(jobs_dir: Path, job: str, status: str) -> Path:
-    """Rewrite only the `status:` line of a job file's frontmatter, then rebuild the index."""
-    if status not in STATUSES:
-        raise ValueError(f"unknown status {status!r}; expected one of {', '.join(STATUSES)}")
+def set_fields(jobs_dir: Path, job: str, fields: dict[str, str]) -> Path:
+    """Rewrite only the given top-level lines of a job file's frontmatter, then rebuild the index."""
+    if fields.get("status", STATUSES[0]) not in STATUSES:
+        raise ValueError(f"unknown status {fields['status']!r}; expected one of {', '.join(STATUSES)}")
     path = Path(jobs_dir) / f"{Path(job).stem}.md"
     if not path.is_file():
         raise FileNotFoundError(f"no job file {path}")
@@ -68,12 +72,23 @@ def set_status(jobs_dir: Path, job: str, status: str) -> Path:
     match = FRONTMATTER.match(text)
     if not match:
         raise ValueError(f"{path}: missing frontmatter")
-    header, n = re.subn(r"^status:.*$", f"status: {status}", match.group(1), count=1, flags=re.M)
-    if not n:
-        header += f"\nstatus: {status}"
+    header = match.group(1)
+    for key, value in fields.items():
+        if not re.fullmatch(r"[a-z_]+", key):
+            raise ValueError(f"bad field name {key!r}")
+        if key in FIXED_FIELDS:
+            raise ValueError(f"{key} is fixed once a job is written")
+        line = yaml.safe_dump({key: value}, allow_unicode=True, width=1000).strip()
+        header, n = re.subn(rf"^{key}:.*$", lambda _: line, header, count=1, flags=re.M)
+        if not n:
+            header += f"\n{line}"
     path.write_text(f"---\n{header}\n---\n{text[match.start(2):]}", encoding="utf-8")
     rebuild_index(jobs_dir)
     return path
+
+
+def set_status(jobs_dir: Path, job: str, status: str) -> Path:
+    return set_fields(jobs_dir, job, {"status": status})
 
 
 # --- hard filter -------------------------------------------------------------------------------
@@ -179,8 +194,10 @@ def write_jobs(candidates: list[dict], scores: dict[str, dict], jobs_dir: Path, 
     return result
 
 
-def rebuild_index(jobs_dir: Path) -> Path:
+def rebuild_index(jobs_dir: Path, companies_dir: Path | None = None) -> Path:
+    """jobs/INDEX.md sorted by score. Pay comes from the job's `pay`, Trend from its Company Profile."""
     jobs_dir = Path(jobs_dir)
+    companies_dir = Path(companies_dir) if companies_dir else jobs_dir.parent / "companies"
     rows = []
     for path in sorted(jobs_dir.glob("*.md")):
         if path.name == "INDEX.md":
@@ -189,10 +206,12 @@ def rebuild_index(jobs_dir: Path) -> Path:
         if meta.get("status") != "ignored":
             rows.append((meta.get("score") or 0, path.name, meta))
     rows.sort(key=lambda r: (-r[0], r[1]))
-    lines = ["# Job Postings", "", "| Score | Odds | Status | Company | Title | Location | Posted |",
-             "|---|---|---|---|---|---|---|"]
+    lines = ["# Job Postings", "", "| Score | Odds | Pay | Trend | Status | Company | Title | Location | Posted |",
+             "|---|---|---|---|---|---|---|---|---|"]
     for score, name, meta in rows:
-        cells = [str(score), str(meta.get("interview_odds") or ""), meta.get("status", ""), meta.get("company", ""), f"[{meta.get('title', '')}]({name})",
+        cells = [str(score), str(meta.get("interview_odds") or ""), str(meta.get("pay") or ""),
+                 trend_arrow(companies_dir, meta.get("company_profile")), meta.get("status", ""),
+                 meta.get("company", ""), f"[{meta.get('title', '')}]({name})",
                  meta.get("location", ""), str(meta.get("posted_at") or "")]
         lines.append("| " + " | ".join(c.replace("|", "/") for c in cells) + " |")
     index = jobs_dir / "INDEX.md"
@@ -203,7 +222,7 @@ def rebuild_index(jobs_dir: Path) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
-    positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": [], "status": []}
+    positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": [], "status": [], "set": []}
     for name, names in positionals.items():
         p = sub.add_parser(name)
         for arg in names:
@@ -214,7 +233,10 @@ def main() -> int:
         if name == "status":
             p.add_argument("job", help="job key or jobs/<key>.md")
             p.add_argument("status", choices=STATUSES)
-        if name not in ("index", "status"):
+        if name == "set":
+            p.add_argument("job", help="job key or jobs/<key>.md")
+            p.add_argument("fields", nargs="+", help="field=value")
+        if name not in ("index", "status", "set"):
             p.add_argument("--profile", type=Path, default=Path("config/profile.yaml"))
             p.add_argument("overrides", nargs="*")
     args = parser.parse_args()
@@ -229,6 +251,15 @@ def main() -> int:
             print(f"ERROR {exc}", file=sys.stderr)
             return 1
         print(f"{path}: status {args.status}; index rebuilt")
+        return 0
+    if args.cmd == "set":
+        fields = dict(f.partition("=")[::2] for f in args.fields)
+        try:
+            path = set_fields(args.jobs, args.job, fields)
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"ERROR {exc}", file=sys.stderr)
+            return 1
+        print(f"{path}: set {', '.join(fields)}; index rebuilt")
         return 0
     profile = load_profile(args.profile, args.overrides)
     if args.cmd == "filter":

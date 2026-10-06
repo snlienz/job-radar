@@ -1,0 +1,5 @@
+# Copy to config/private.yaml (gitignored) and fill in. /research compares reported pay with these
+# to add salary risks to a Job Posting. Annual total compensation in NT$ (base + bonus + stock).
+salary:
+  current_annual: 0     # what you earn now
+  target_annual: 0      # what you want from the next job

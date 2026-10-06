@@ -26,7 +26,7 @@ Start Claude Code from a terminal where `.venv` is activated, so the commands' `
 
 ## Getting started
 
-**The easy way: run `/hunt`.** It checks your setup, then walks you through the steps below one at a time and stops whenever a decision is yours: which jobs are worth looking into (the **Fit Gate**), which to apply for after reading about the company (the **Company Gate**), and whether you have applied. It works out where you are from your files, so run it again whenever you want to carry on; `/hunt search` starts with a fresh search. The sections below describe each step, which you can also run on its own.
+**The easy way: run `/hunt`.** It checks your setup, then walks you through the steps below one at a time and stops whenever a decision is yours: which jobs are worth looking into (the **Fit Gate**), which to apply for after reading about the company (the **Company Gate**), and whether you have applied. It works out where you are from your files, so run it again whenever you want to carry on; `/hunt search` starts with a fresh search. The sections below describe each step, which you can also run on its own. For a worked example with inputs and outputs, see [docs/examples/hunt-walkthrough.md](docs/examples/hunt-walkthrough.md) ([繁體中文](docs/examples/hunt-walkthrough.zh-TW.md)).
 
 ### 1. Add your records
 

@@ -227,3 +227,4 @@ output/
 companies/*
 !companies/.gitkeep
 config/private.yaml
+config/profile.yaml

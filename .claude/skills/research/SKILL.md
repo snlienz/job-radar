@@ -41,13 +41,16 @@ Use WebSearch and WebFetch for public pages. Read pages that need a login or blo
 Pick `growing`, `flat`, `shrinking` or `unknown`, backed by 2-3 dated, sourced points led by revenue and layoff or hiring news. Forum opinion only supports a label; it never sets it. Without enough evidence, say `unknown` rather than guess.
 
 ### Culture
-Four fixed facets, each `正面`, `混合`, `負面` or `不明`, with 1-2 dated, sourced quotes:
+Five fixed facets, each `正面`, `混合`, `負面` or `不明`, with 1-2 dated, sourced quotes:
 - 工時／加班: hours, overtime, on-call, 責任制
-- 主管與管理: managers, management style
+- 主管與管理: managers, management style, and reports of workplace bullying (職場霸凌)
 - 升遷與考績: promotion and review system
 - 工作彈性: WFH, flexible hours
+- 福利: year-end bonus, profit sharing, employee stock, insurance, leave, other benefits
 
-Sources: PTT (Tech_Job, Salary boards), Dcard (工作板), Glassdoor, GoodJob 職場透明化運動, interview.tw. End with one sentence summing up.
+Sources: PTT (Tech_Job, Salary boards), Dcard (工作板), Glassdoor, GoodJob 職場透明化運動, interview.tw, and Google (WebSearch) for anything else. End with one sentence summing up.
+
+A profile written before the 福利 facet has no 福利 line. It is researched only when the culture section goes stale or the user says `refresh`; until then report it as `未研究`.
 
 ### Pay
 - **Posted**: the salary field of the company's 104 postings, monthly. "待遇面議" means at least NT$40,000/month and says nothing more.
@@ -79,6 +82,7 @@ checked: {growth: 2026-10-06, culture: 2026-10-06, pay: 2026-10-06}
 - **主管與管理：…**
 - **升遷與考績：…**
 - **工作彈性：…**
+- **福利：…**
 
 ## 薪資
 - **公告**：104 職缺 NT$80k–150k/月（2 筆，2026-09）
@@ -105,12 +109,21 @@ It lists every non-ignored job file of the company. For each one (and for the jo
    **Pay (this role):** 3.1M/yr median (n=4, 2026); posted NT$80k–150k/month
    ```
    Append company risks to the existing **Risks** list (create it if absent), each starting with `[company]`, e.g. `[company] Reported median pay is below your current pay`, `[company] Revenue down 18% YoY and layoffs in 2026-06`, `[company] PTT reports regular overtime`. On a later run, replace the old `[company]` items rather than adding more. Leave the Fit section otherwise untouched.
-4. **Frontmatter.** Set the fields with the script. Never change `score`:
+
+   **Bullying.** One report of workplace bullying from the last 2 years that is specific (names the department or describes what a manager did) is a `[company]` risk, quoting it, e.g. `[company] Dcard 2026-03 reports a manager in the camera team publicly berating engineers (單一來源)`. Keep `(單一來源)` until two independent reports agree. A vague complaint stays in the 主管與管理 facet only.
+4. **Department (shortlisted jobs only).** For a job with `status: shortlisted` and no `department` field (or with `refresh`), find the department, BU or team in its JD or title (e.g. `Camera BU`, `Mobile Computing`). If there is one, search Google (WebSearch), PTT and Dcard for the company with that department (心得, 加班, 主管, 面試) in the last 2 years. Add the findings under the job's `## Company` section, never to the Company Profile:
+   ```markdown
+   **部門傳聞（Camera BU）：**
+   - 「…」（PTT Tech_Job，2026-04，<url>）
    ```
-   python scripts/search_jobs.py set <key> company_profile=<slug> "pay=3.1M (n=4)" [interview_odds=40-50%]
+   Write `**部門傳聞（Camera BU）：** 查無資料` when nothing turns up, and `**部門傳聞：** JD 未載部門` when the JD names none. The bullying rule above applies here too. Department reports are sparse and go stale quickly, so they stay with the job. Skip this step for jobs that are not shortlisted (`/hunt` shortlists them at its Fit Gate).
+5. **Frontmatter.** Set the fields with the script. Never change `score`:
    ```
+   python scripts/search_jobs.py set <key> company_profile=<slug> "pay=3.1M (n=4)" [department=<name or none>] [interview_odds=40-50%]
+   ```
+   Set `department` only for a job whose department was researched in item 4: its name, or `none` when the JD names none. `/hunt` reads it to tell a researched job from one still waiting.
    `pay` is short for the INDEX column: the reported median for the role with its `n`, else the posted range, else leave it unset. Change `interview_odds` only when the company findings really move it (e.g. a hiring freeze, interview reports that are much harder or easier than expected), and add a `[company]` risk saying why. The script rebuilds `jobs/INDEX.md`.
 
 ## 5. Report
 
-Per company: the Trend with its main evidence, the four culture facets as one line each, the pay figures with `n`, and which jobs were updated (new `[company]` risks, changed odds). Name every source that was skipped (login, block) and every section left `unknown` or `不明`.
+Per company: the Trend with its main evidence, the five culture facets as one line each (`未研究` for a missing 福利), the pay figures with `n`, and which jobs were updated (new `[company]` risks, changed odds). Name every source that was skipped (login, block) and every section left `unknown` or `不明`.

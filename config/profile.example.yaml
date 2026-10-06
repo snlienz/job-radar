@@ -1,3 +1,4 @@
+# Copy to config/profile.yaml (gitignored) and fill it in; /hunt copies it for you if it is missing.
 # Default search criteria for /search. Any field can be overridden per run,
 # e.g. `/search keywords=firmware,embedded location=Hsinchu min_score=70`.
 industries:

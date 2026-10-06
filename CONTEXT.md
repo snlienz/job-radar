@@ -16,15 +16,23 @@
 
 **Job Source** — an entry in `config/sources.yaml` (104 or a company careers site) with a fetch `method`: `api`, `fetch` or `browser`.
 
-**Search Profile** — default filters in `config/profile.yaml` (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run. Include keywords match the title or JD; exclude keywords match the title only. `/search url=<careers page>` scores one page's jobs without the include filter.
+**Search Profile** — default filters in `config/profile.yaml` (per user, gitignored; copied from `config/profile.example.yaml`) (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run. Include keywords match the title or JD; exclude keywords match the title only. `/search url=<careers page>` scores one page's jobs without the include filter.
 
 **Job Posting** — one opening, stored as `jobs/<company>-<id>.md` with the JD, Fit analysis and a `status`. Deduplicated by URL.
 
 **Fit Score** — 0-100 rubric score of a Job Posting against the Master Resume (skills, seniority, industry, responsibilities), plus listed strengths and gaps, and optionally an estimated interview-odds range, risks (such as overqualification, salary or commute) and prep actions.
 
-**Company Profile** — `companies/<slug>.md`, what `/research` found about one company: its **Trend** (growing / flat / shrinking / unknown, from revenue YoY and layoff or hiring news), its culture on four facets (hours, management, promotion, flexibility) and its reported pay, each with dated, sourced evidence and its own `checked` date so stale sections are researched again. Keyed by the company's English name, with `aliases` (Chinese name, local subsidiary); a Taiwan branch shares its parent's profile. Gitignored.
+**Company Profile** — `companies/<slug>.md`, what `/research` found about one company: its **Trend** (growing / flat / shrinking / unknown, from revenue YoY and layoff or hiring news), its culture on five facets (hours, management including bullying reports, promotion, flexibility, benefits) and its reported pay, each with dated, sourced evidence and its own `checked` date so stale sections are researched again. Keyed by the company's English name, with `aliases` (Chinese name, local subsidiary); a Taiwan branch shares its parent's profile. Gitignored.
 
 **Company research** — what `/research` adds to a Job Posting: a Company section, a `pay` estimate for that role, `[company]` risks and, if they change the odds, a new `interview_odds`. It never changes the Fit Score, which only measures resume-to-JD fit. Pay is compared with the gitignored `config/private.yaml` salary.
+
+**Department Notes** — forum and web reports about one Job Posting's department or BU, researched only for `shortlisted` jobs and kept in that job's Company section (never in the Company Profile). The job's `department` field records that they were looked up (`none` when the JD names no department).
+
+**Hunt** — the guided flow run by `/hunt`: setup check, then applied? → company research → Company Gate → Fit Gate → new search, worked out from the files each run, with no state of its own.
+
+**Fit Gate** — the Hunt step where the user picks `new` Job Postings worth researching (→ `shortlisted`).
+
+**Company Gate** — the Hunt step where the user reads a shortlisted job's company research and decides: tailor and apply (→ `tailored`), drop (→ `ignored`) or wait.
 
 **Status** — `new` → `shortlisted` → `tailored` → `applied` → `interview` → `rejected`/`offer`; or `ignored` (hidden from future searches).
 

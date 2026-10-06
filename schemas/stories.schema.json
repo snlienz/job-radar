@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stories.schema.json",
+  "title": "Story Bank",
+  "description": "Reusable STAR(+Reflection) interview stories built from Master Resume Achievements. English. Situation, task, action and result use only facts and numbers from the cited Achievements; the reflection is the user's own words.",
+  "type": "object",
+  "required": ["built_from", "stories"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
+  },
+  "properties": {
+    "built_from": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/id" },
+      "description": "Every Master Achievement id considered when the bank was last built; the bank is stale when the master has ids not in this list"
+    },
+    "stories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "themes", "achievements", "situation", "task", "action", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "title": { "type": "string", "minLength": 1 },
+          "themes": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "Behavioral themes it answers, e.g. technical-challenge, conflict, failure, leadership, cross-team"
+          },
+          "questions": { "type": "array", "items": { "type": "string" }, "description": "Sample interview questions this story answers" },
+          "achievements": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/id" },
+            "description": "Master Achievement ids the story draws on"
+          },
+          "situation": { "type": "string", "minLength": 1 },
+          "task": { "type": "string", "minLength": 1 },
+          "action": { "type": "string", "minLength": 1 },
+          "result": { "type": "string", "minLength": 1 },
+          "reflection": { "type": "string", "description": "What the user learned or would do differently, in their words from the interview; never invented" },
+          "open_questions": { "type": "array", "items": { "type": "string" }, "description": "Context still to ask the user about" }
+        }
+      }
+    }
+  }
+}

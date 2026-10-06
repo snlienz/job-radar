@@ -19,6 +19,7 @@ Check, in this order, and stop at the first blocker:
 Then mention, without stopping:
 - `config/private.yaml` missing: pay cannot be compared with theirs; copy `config/private.example.yaml` and fill it in.
 - No Claude in Chrome tools (`mcp__claude-in-chrome__*`) in this session: 104 (often blocked), browser sources, Dcard and Glassdoor will be skipped.
+- `python scripts/stories.py status` prints `missing`: there is no Story Bank for interviews yet; `/prep` builds one. `stale <ids>`: the Master Resume has new Achievements; `/prep` considers them for the stories.
 
 ## Where the user is
 

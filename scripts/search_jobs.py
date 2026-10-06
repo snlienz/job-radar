@@ -5,8 +5,10 @@
   index                                                     regenerate jobs/INDEX.md only
   status  <key or jobs/<key>.md> <status>                   set a Job Posting's status, then reindex
   set     <key or jobs/<key>.md> field=value ...            set frontmatter fields written by /research
-                                                            (pay, company_profile, interview_odds), then reindex
+                                                            (pay, company_profile, department, interview_odds),
+                                                            then reindex
   lookup  <url>                                             print jobs/<key>.md for that posting URL (exit 1 if none)
+  stages                                                    print the jobs waiting on each /hunt step as JSON
 """
 import argparse
 import json
@@ -96,6 +98,29 @@ def set_fields(jobs_dir: Path, job: str, fields: dict[str, str]) -> Path:
 
 def set_status(jobs_dir: Path, job: str, status: str) -> Path:
     return set_fields(jobs_dir, job, {"status": status})
+
+
+def stages(jobs_dir: Path) -> dict[str, list[dict]]:
+    """Jobs waiting on each /hunt step, highest score first (docs/adr/0006-guided-hunt.md):
+    tailored (applied yet?), research (shortlisted, company or department not researched),
+    decide (shortlisted and researched: the Company Gate), new (the Fit Gate)."""
+    result = {"tailored": [], "research": [], "decide": [], "new": []}
+    for path in sorted(Path(jobs_dir).glob("*.md")):
+        if path.name == "INDEX.md":
+            continue
+        meta, _ = read_job(path)
+        status = meta.get("status")
+        if status == "shortlisted":
+            stage = "decide" if meta.get("company_profile") and meta.get("department") else "research"
+        elif status in ("tailored", "new"):
+            stage = status
+        else:
+            continue
+        result[stage].append({"key": path.stem, **{f: meta.get(f) for f in (
+            "score", "interview_odds", "pay", "company", "title", "location", "company_profile", "department")}})
+    for jobs in result.values():
+        jobs.sort(key=lambda j: (-(j["score"] or 0), j["key"]))
+    return result
 
 
 # --- hard filter -------------------------------------------------------------------------------
@@ -230,7 +255,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
     positionals = {"filter": ["postings"], "write": ["candidates", "scores"], "index": [], "status": [], "set": [],
-                   "lookup": []}
+                   "lookup": [], "stages": []}
     for name, names in positionals.items():
         p = sub.add_parser(name)
         for arg in names:
@@ -246,7 +271,7 @@ def main() -> int:
             p.add_argument("fields", nargs="+", help="field=value")
         if name == "lookup":
             p.add_argument("url")
-        if name not in ("index", "status", "set", "lookup"):
+        if name not in ("index", "status", "set", "lookup", "stages"):
             p.add_argument("--profile", type=Path, default=Path("config/profile.yaml"))
             p.add_argument("overrides", nargs="*")
     args = parser.parse_args()
@@ -276,6 +301,9 @@ def main() -> int:
         if path:
             print(path.as_posix())
         return 0 if path else 1
+    if args.cmd == "stages":
+        print(json.dumps(stages(args.jobs), ensure_ascii=False, indent=1))
+        return 0
     profile =load_profile(args.profile, args.overrides)
     if args.cmd == "filter":
         postings = json.loads(args.postings.read_text(encoding="utf-8"))["postings"]

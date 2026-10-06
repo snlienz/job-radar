@@ -9,7 +9,7 @@ Read `CONTEXT.md` and `docs/adr/0003-per-source-fetch-method.md` first. Argument
 
 `research=N` is not a profile override: take it out before passing the rest on. It runs company research after step 5 (see step 6).
 
-If neither `config/profile.yaml` `keywords.include` nor a `keywords=` override gives a keyword, stop and ask the user for some before fetching: without one every posting in the locations is fetched and scored. The exception is URL mode below.
+If `config/profile.yaml` is missing, copy `config/profile.example.yaml` to it first. If neither `config/profile.yaml` `keywords.include` nor a `keywords=` override gives a keyword, stop and ask the user for some before fetching: without one every posting in the locations is fetched and scored. The exception is URL mode below.
 
 ### URL mode: `/search url=<careers page>`
 

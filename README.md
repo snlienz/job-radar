@@ -26,6 +26,8 @@ Start Claude Code from a terminal where `.venv` is activated, so the commands' `
 
 ## Getting started
 
+**The easy way: run `/hunt`.** It checks your setup, then walks you through the steps below one at a time and stops whenever a decision is yours: which jobs are worth looking into (the **Fit Gate**), which to apply for after reading about the company (the **Company Gate**), and whether you have applied. It works out where you are from your files, so run it again whenever you want to carry on; `/hunt search` starts with a fresh search. The sections below describe each step, which you can also run on its own.
+
 ### 1. Add your records
 
 Create `data/raw/` and drop in anything that describes your work: old resumes, self-reviews, weekly reports, wiki or Confluence exports. Subfolders are fine.
@@ -40,7 +42,7 @@ Read **`data/master.md`**, the human-readable version. Edit `data/master.yaml` d
 
 ### 3. Set what you are looking for
 
-Edit [`config/profile.yaml`](config/profile.yaml): keywords, locations, industries, seniority and the minimum Fit Score. **Set `keywords.include`**: it is empty by default, and `/search` will ask for keywords rather than fetch every posting in your locations.
+Copy [`config/profile.example.yaml`](config/profile.example.yaml) to `config/profile.yaml` (gitignored; `/hunt` and `/search` copy it for you if it is missing) and edit it: keywords, locations, industries, seniority and the minimum Fit Score. **Set `keywords.include`**: it is empty by default, and `/search` will ask for keywords rather than fetch every posting in your locations.
 
 Job Sources live in [`config/sources.yaml`](config/sources.yaml) (104, NVIDIA and TSMC to start). Add a company with `/add-source <careers page url>`.
 
@@ -54,7 +56,7 @@ Already have a company's careers page? `/search url=https://www.kneron.com/tw/ca
 
 ### 5. Research a company — `/research`
 
-`/research jobs/<company>-<id>.md` (or `/research 輝達`, or a posting URL) looks up the company's pay, whether it is growing or shrinking, and its work culture on PTT, Dcard, GoodJob, Glassdoor, 104, MOPS and the news, with a source and date for each finding. The result goes to `companies/<slug>.md` and is reused until it goes stale (90 days for trend and culture, 180 for pay; add `refresh` to redo it). Every job of that company gets a Company section, `[company]` risks and the **Pay** and **Trend** columns in `INDEX.md`; its Fit Score is never changed. `/search research=3` does this for the top three companies of a search. A URL not yet in `jobs/` gets the company researched and the role's pay in the reply; run `/search url=<url>` to save and score it, then `/research <company>` to add the profile to it.
+`/research jobs/<company>-<id>.md` (or `/research 輝達`, or a posting URL) looks up the company's pay, whether it is growing or shrinking, and its work culture (hours, management and bullying reports, promotion, flexibility, benefits) on PTT, Dcard, GoodJob, Glassdoor, 104, MOPS, Google and the news, with a source and date for each finding. For a `shortlisted` job it also looks up its department or BU and adds those notes to the job. The result goes to `companies/<slug>.md` and is reused until it goes stale (90 days for trend and culture, 180 for pay; add `refresh` to redo it). Every job of that company gets a Company section, `[company]` risks and the **Pay** and **Trend** columns in `INDEX.md`; its Fit Score is never changed. `/search research=3` does this for the top three companies of a search. A URL not yet in `jobs/` gets the company researched and the role's pay in the reply; run `/search url=<url>` to save and score it, then `/research <company>` to add the profile to it.
 
 To have pay compared with your own, copy [`config/private.example.yaml`](config/private.example.yaml) to `config/private.yaml` (gitignored) and fill it in. Glassdoor and Dcard are read in your Chrome, so log in there first if you want them included.
 
@@ -81,6 +83,7 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 
 | Command | What it does |
 |---|---|
+| `/hunt [search]` | Guided flow: check setup, then search, Fit Gate, research, Company Gate, tailor and "applied?", one step at a time |
 | `/scan` | Incrementally extract `data/raw/` into `data/master.yaml`, then ask about gaps |
 | `/search [overrides]` | Fetch Job Postings from `config/sources.yaml`, filter by `config/profile.yaml`, score, write `jobs/` |
 | `/research <job, company or URL> [refresh]` | Research a company's pay, trend and culture into `companies/`, add it to its jobs |
@@ -102,4 +105,4 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 
 ## Privacy
 
-`data/`, `jobs/`, `companies/`, `output/` and `config/private.yaml` are gitignored, so your records and salary are never committed. They are read by Claude when you run the commands, so the text you put in `data/raw/` is sent to Claude as part of the conversation.
+`data/`, `jobs/`, `companies/`, `output/`, `config/profile.yaml` and `config/private.yaml` are gitignored, so your records and salary are never committed. They are read by Claude when you run the commands, so the text you put in `data/raw/` is sent to Claude as part of the conversation.

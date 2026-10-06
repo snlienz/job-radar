@@ -4,7 +4,7 @@ import pytest
 import yaml
 
 from search_jobs import (filter_postings, find_job, known_jobs, posting_key, read_job, rebuild_index,
-                         set_fields, set_status, write_jobs)
+                         set_fields, set_status, stages, write_jobs)
 from search_profile import load_profile
 
 
@@ -233,3 +233,24 @@ def test_find_job_by_url_ignores_trailing_slash_and_fragment(tmp_path):
 
     assert find_job(jobs, "https://x.test/jr1/#apply") == jobs / "nvidia-jr1.md"
     assert find_job(jobs, "https://x.test/other") is None
+
+
+def test_stages_group_jobs_for_hunt_by_status_and_research(tmp_path):
+    jobs = tmp_path / "jobs"
+    keys = {"low": 60, "high": 90, "short": 70, "half": 75, "done": 80, "tail": 85, "gone": 95}
+    run_write(jobs, [{**posting(id=k, url=f"https://x.test/{k}"), "key": k} for k in keys],
+              {k: score(s) for k, s in keys.items()})
+    for key in ("short", "half", "done"):
+        set_status(jobs, key, "shortlisted")
+    set_fields(jobs, "half", {"company_profile": "nvidia"})  # company researched, department not yet
+    set_fields(jobs, "done", {"company_profile": "nvidia", "department": "none"})
+    set_status(jobs, "tail", "tailored")
+    set_status(jobs, "gone", "ignored")
+
+    result = stages(jobs)
+
+    assert [j["key"] for j in result["tailored"]] == ["tail"]
+    assert [j["key"] for j in result["research"]] == ["half", "short"]
+    assert [j["key"] for j in result["decide"]] == ["done"]
+    assert [j["key"] for j in result["new"]] == ["high", "low"]
+    assert result["new"][0]["score"] == 90 and result["new"][0]["title"] == "Firmware Engineer"

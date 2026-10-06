@@ -1,6 +1,6 @@
 ---
 name: research
-description: Research a company's pay, growth trend and work culture into a Company Profile in companies/, and add the results to its Job Postings. Use when the user runs /research with a job file or company name, asks how much a job pays, whether a company is growing or shrinking, or what it is like to work there.
+description: Research a company's pay, growth trend and work culture into a Company Profile in companies/, and add the results to its Job Postings. Use when the user runs /research with a job file, company name or posting URL, asks how much a job pays, whether a company is growing or shrinking, or what it is like to work there.
 ---
 
 # /research
@@ -8,7 +8,8 @@ description: Research a company's pay, growth trend and work culture into a Comp
 Read `CONTEXT.md` and `docs/adr/0005-company-research.md` first. The input is one of:
 - `jobs/<key>.md`: research that job's company, then write back to that job and every other job of the company.
 - a company name or alias (`輝達`, `TSMC`): research the company, then write back to all its jobs.
-- either of the above followed by `refresh`: research every section, whatever its `checked` date.
+- a posting URL (a careers page or 104 job page): run `python scripts/search_jobs.py lookup <url>`. If it prints a job file, carry on as for that job file. If not, read the page (WebFetch; if it is blocked or JS-rendered, read it in the browser as `/search` step 2 does) for the company, title, seniority (years asked for) and any posted pay. Research that company as for a company name. In step 4, there is no job file to write back to: work out the role pay for this posting all the same and give it in the report, then suggest `/search url=<url>` to score it and save it to `jobs/`, followed by `/research <company>`, which writes the fresh profile back to it without researching again.
+- any of the above followed by `refresh`: research every section, whatever its `checked` date.
 
 Answer in the user's language (Traditional Chinese if they wrote in Chinese). Profiles are written in Traditional Chinese with quotes in their original language.
 

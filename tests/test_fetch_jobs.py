@@ -3,7 +3,7 @@ from pathlib import Path
 
 import httpx
 
-from fetch_jobs import fetch_all, fetch_104, fetch_static, fetch_workday, html_to_text, queries
+from fetch_jobs import fetch_all, fetch_104, fetch_static, fetch_workday, html_to_text, queries, url_source
 
 FIX = Path(__file__).parent / "fixtures"
 PROFILE = {"include": ["firmware"], "exclude": [], "locations": ["Taipei"]}
@@ -123,6 +123,28 @@ def test_static_page_collects_job_links_and_their_text():
     assert postings[0]["title"] == "Firmware Engineer" and postings[0]["id"] == "jobs-1"
     assert "Write drivers." in postings[0]["jd_text"] and "menu" not in postings[0]["jd_text"]
     assert "x()" not in postings[0]["jd_text"]
+
+
+def test_url_source_names_company_and_scopes_to_the_page_section():
+    source = url_source("https://www.kneron.com/tw/careers/1/")
+
+    assert source["name"] == "Kneron" and source["method"] == "fetch"
+    assert source["scope"] == "https://www.kneron.com/tw/careers/"
+    assert url_source("https://acme.test/careers", name="Acme Corp")["name"] == "Acme Corp"
+    assert url_source("https://acme.test/careers")["scope"] == "https://acme.test/"
+
+
+def test_scoped_static_page_keeps_only_jobs_in_the_section():
+    # the given page is itself a posting with a sidebar of the others, plus language and section links
+    listing = ('<a href="/en/careers/1/">ENGLISH</a><a href="/tw/careers/1/">繁體中文</a><a href="/tw/careers/">加入我們</a>'
+               '<a href="/tw/careers/1/">SLAM Engineer</a><a href="/tw/careers/72/">SW Engineer</a>')
+    pages = {"/tw/careers/1/": listing, "/tw/careers/72/": listing + "<h1>SW Engineer</h1><p>Write C++.</p>"}
+    source = url_source("https://kneron.test/tw/careers/1/")
+
+    postings = fetch_static(source, PROFILE, client(lambda r: httpx.Response(200, text=pages[r.url.path])))
+
+    assert [(p["title"], p["company"]) for p in postings] == [("SLAM Engineer", "Kneron"), ("SW Engineer", "Kneron")]
+    assert "Write C++." in postings[1]["jd_text"] and "SLAM Engineer" not in postings[1]["jd_text"]  # sidebar gone
 
 
 def test_html_to_text_keeps_list_and_paragraph_breaks():

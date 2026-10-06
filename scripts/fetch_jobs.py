@@ -176,6 +176,27 @@ def fetch_104(source: dict, profile: dict, client: httpx.Client, limit: int = DE
 
 # --- generic static pages ----------------------------------------------------------------------
 
+def url_source(url: str, name: str | None = None) -> dict:
+    """A one-off `fetch` source for a careers page the user gave (`/search url=`).
+
+    `scope` is the page's parent section: only links under it count as postings, so language
+    switchers and site navigation are left out.
+    """
+    parsed = urlparse(url)
+    parent = parsed.path.rstrip("/").rsplit("/", 1)[0] + "/"
+    company = name or parsed.hostname.removeprefix("www.").split(".")[0].capitalize()
+    return {"name": company, "url": url, "method": "fetch", "scope": f"{parsed.scheme}://{parsed.netloc}{parent}"}
+
+
+def _wanted_link(href: str, source: dict, pattern: re.Pattern) -> bool:
+    if not pattern.search(href):
+        return False
+    scope = source.get("scope")
+    if scope:  # the given page may itself be a posting, so keep its self-link
+        return href.startswith(scope) and href.rstrip("/") != scope.rstrip("/")
+    return href.rstrip("/") != source["url"].rstrip("/")
+
+
 def fetch_static(source: dict, profile: dict, client: httpx.Client, limit: int = DEFAULT_LIMIT) -> list[dict]:
     """Listing page of job links (`link_pattern` regex on the href, default job-ish words)."""
     pattern = re.compile(source.get("link_pattern", r"job|career|position|opening|requisition"), re.I)
@@ -185,13 +206,18 @@ def fetch_static(source: dict, profile: dict, client: httpx.Client, limit: int =
     for a in listing.iter("a"):
         href = (a.get("href") or "").split("#")[0]
         title = " ".join(a.text_content().split())
-        if href and title and pattern.search(href) and href.rstrip("/") != source["url"].rstrip("/"):
-            links.setdefault(href, title)
+        # one URL can be linked as "繁體中文" (language switcher) and as the job title: keep the longer
+        if href and title and _wanted_link(href, source, pattern) and len(title) > len(links.get(href, "")):
+            links[href] = title
     postings = []
     for url, title in list(links.items())[:limit]:
         page = lxml_html.fromstring(_check(client.get(url)).text)
+        page.make_links_absolute(url)
         for el in page.xpath("//script|//style|//nav|//header|//footer"):
             el.drop_tree()
+        for a in page.xpath("//a[@href]"):  # a sidebar listing the other postings is not this JD
+            if a.get("href").split("#")[0] in links:
+                a.drop_tree()
         postings.append({
             "source": str(source["name"]),
             "company": str(source["name"]),
@@ -233,14 +259,19 @@ def main() -> int:
     parser.add_argument("--sources", type=Path, default=Path("config/sources.yaml"))
     parser.add_argument("--profile", type=Path, default=Path("config/profile.yaml"))
     parser.add_argument("--only", help="fetch just this source name")
+    parser.add_argument("--url", help="fetch this careers page instead of the configured sources")
+    parser.add_argument("--name", help="company name for --url (default: from the host name)")
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT, help="postings per query per source")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
     profile = load_profile(args.profile, args.overrides)
-    if not profile["include"]:
-        print("WARNING no include keywords: fetching every posting in the profile's locations", file=sys.stderr)
-    sources = yaml.safe_load(args.sources.read_text(encoding="utf-8"))["sources"]
+    if args.url:
+        sources = [url_source(args.url, args.name)]
+    else:
+        if not profile["include"]:
+            print("WARNING no include keywords: fetching every posting in the profile's locations", file=sys.stderr)
+        sources = yaml.safe_load(args.sources.read_text(encoding="utf-8"))["sources"]
     if args.only:
         sources = [s for s in sources if str(s["name"]) == args.only]
     with httpx.Client(headers=HEADERS, timeout=30, follow_redirects=True) as client:

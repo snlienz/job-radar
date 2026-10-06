@@ -90,8 +90,8 @@ def drop_reason(posting: dict, profile: dict) -> str | None:
     haystack = f"{posting['title']}\n{posting.get('jd_text', '')}".casefold()
     if profile["include"] and not any(k.casefold() in haystack for k in profile["include"]):
         return "no include keyword in title or JD"
-    for word in profile["exclude"]:
-        if word.casefold() in haystack:
+    for word in profile["exclude"]:  # title only: JDs say "intern or full time", "work with sales"
+        if word.casefold() in posting["title"].casefold():
             return f"exclude keyword: {word}"
     if profile["locations"]:
         location = posting.get("location", "").casefold()

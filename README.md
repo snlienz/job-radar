@@ -50,6 +50,8 @@ Claude fetches postings, drops the ones that fail the profile, scores the rest a
 
 Override the profile for one run: `/search keywords=firmware,embedded location=Hsinchu min_score=70`.
 
+Already have a company's careers page? `/search url=https://www.kneron.com/tw/careers/1/` scores every job on it (no keyword search or keyword filter; excluded titles, locations and jobs already in `jobs/` still drop out).
+
 ### 5. Make a resume — `/tailor jobs/<company>-<id>.md`
 
 Claude picks the relevant Achievements, rewords them for the JD without inventing anything, validates every bullet against the Master Resume and renders `output/<company>-<id>/resume.docx` and `resume.pdf`.

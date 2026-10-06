@@ -156,11 +156,20 @@ def write_jobs(candidates: list[dict], scores: dict[str, dict], jobs_dir: Path, 
             "url": posting["url"], "status": "new", "score": score, "fetched_at": now,
             "posted_at": posting.get("posted_at"),
         }
+        odds = entry.get("interview_odds")
+        if odds:
+            meta["interview_odds"] = odds
+        fit = [entry.get("summary", "")]
+        if odds:
+            fit.append(f"**Interview odds:** {odds}")
+        fit += [f"**Strengths**\n{_bullets(entry.get('strengths', []))}",
+                f"**Gaps**\n{_bullets(entry.get('gaps', []))}"]
+        for label, field in (("Risks", "risks"), ("Prep", "prep")):  # optional sections
+            if entry.get(field):
+                fit.append(f"**{label}**\n{_bullets(entry[field])}")
         body = (
             f"# {posting['title']} — {posting['company']}\n\n"
-            f"## Fit ({score}/100)\n\n{entry.get('summary', '')}\n\n"
-            f"**Strengths**\n{_bullets(entry.get('strengths', []))}\n\n"
-            f"**Gaps**\n{_bullets(entry.get('gaps', []))}\n\n"
+            f"## Fit ({score}/100)\n\n" + "\n\n".join(fit) + "\n\n"
             f"## Job description\n\n{posting.get('jd_text', '').strip()}\n"
         )
         header = yaml.safe_dump(meta, allow_unicode=True, sort_keys=False).strip()
@@ -180,9 +189,10 @@ def rebuild_index(jobs_dir: Path) -> Path:
         if meta.get("status") != "ignored":
             rows.append((meta.get("score") or 0, path.name, meta))
     rows.sort(key=lambda r: (-r[0], r[1]))
-    lines = ["# Job Postings", "", "| Score | Status | Company | Title | Location | Posted |", "|---|---|---|---|---|---|"]
+    lines = ["# Job Postings", "", "| Score | Odds | Status | Company | Title | Location | Posted |",
+             "|---|---|---|---|---|---|---|"]
     for score, name, meta in rows:
-        cells = [str(score), meta.get("status", ""), meta.get("company", ""), f"[{meta.get('title', '')}]({name})",
+        cells = [str(score), str(meta.get("interview_odds") or ""), meta.get("status", ""), meta.get("company", ""), f"[{meta.get('title', '')}]({name})",
                  meta.get("location", ""), str(meta.get("posted_at") or "")]
         lines.append("| " + " | ".join(c.replace("|", "/") for c in cells) + " |")
     index = jobs_dir / "INDEX.md"

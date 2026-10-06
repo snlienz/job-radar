@@ -20,7 +20,7 @@
 
 **Job Posting** — one opening, stored as `jobs/<company>-<id>.md` with the JD, Fit analysis and a `status`. Deduplicated by URL.
 
-**Fit Score** — 0-100 rubric score of a Job Posting against the Master Resume (skills, seniority, industry, responsibilities), plus listed gaps.
+**Fit Score** — 0-100 rubric score of a Job Posting against the Master Resume (skills, seniority, industry, responsibilities), plus listed strengths and gaps, and optionally an estimated interview-odds range, risks (such as overqualification, salary or commute) and prep actions.
 
 **Status** — `new` → `shortlisted` → `tailored` → `applied` → `interview` → `rejected`/`offer`; or `ignored` (hidden from future searches).
 

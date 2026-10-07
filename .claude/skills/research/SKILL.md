@@ -13,6 +13,8 @@ Read `CONTEXT.md`, `docs/adr/0005-company-research.md` and `docs/adr/0008-compan
 
 Answer in the user's language (Traditional Chinese if they wrote in Chinese). Profiles are written in Traditional Chinese with quotes in their original language.
 
+**Cite every fact.** Every company fact, in the profile, the job's `## Company` section, a `[company]` risk, the report or any answer about the company, carries its source right after it as a link with the site and date: `（[interview.tw，2026-05](https://…)）`. A list of sources at the end does not replace this. When the date is unknown, write `日期不明`; when a source has no URL (a fact the user told you), say where it came from. A conclusion of your own (a Trend or culture label, 策略關聯, the skills a company probably wants) is marked `推測` and names the facts it rests on. Never state a company fact you have no source for.
+
 ## 1. Find or create the Company Profile
 
 ```
@@ -126,10 +128,10 @@ It lists every non-ignored job file of the company. For each one (and for the jo
 
    **Pay (this role):** 3.1M/yr median (n=4, 2026); posted NT$80k–150k/month
 
-   **策略關聯：** 核心：公司正把資源投入 AI 資料中心，這個職位做的是 GPU 系統軟體
+   **策略關聯：** 核心（推測）：公司正把資源投入 AI 資料中心（[NVIDIA 財報，2026-08-27](<url>)），這個職位做的是 GPU 系統軟體
    ```
    `策略關聯` is `核心`, `周邊` or `不明`, with one line on why, from the profile's 經營方向 and the JD.
-   Append company risks to the existing **Risks** list (create it if absent), each starting with `[company]`, e.g. `[company] Reported median pay is below your current pay`, `[company] Revenue down 18% YoY and layoffs in 2026-06`, `[company] PTT reports regular overtime`. On a later run, replace the old `[company]` items rather than adding more. Leave the Fit section otherwise untouched.
+   Append company risks to the existing **Risks** list (create it if absent), each starting with `[company]`, each with its source link, e.g. `[company] Reported median pay is below your current pay`, `[company] Revenue down 18% YoY and layoffs in 2026-06（[MOPS，2026-07](<url>)）`, `[company] PTT reports regular overtime（[PTT Tech_Job，2026-05](<url>)）`. On a later run, replace the old `[company]` items rather than adding more. Leave the Fit section otherwise untouched.
 
    **Direction.** Each of these is a `[company]` risk, with its source: 2 or more CEO or president changes in the last 2 years; succession undecided, or a public fight over control; a direction that conflicts with the role (its business being closed, sold or shrunk); a stated direction the company's actions clearly contradict (a proclaimed transformation while R&D openings keep shrinking). Opinions about a leader's style are not a risk; they stay in the profile.
 
@@ -155,4 +157,4 @@ It lists every non-ignored job file of the company. For each one (and for the jo
 
 ## 5. Report
 
-Per company: the Trend with its main evidence, the five culture facets as one line each (`未研究` for a missing 福利), the pay figures with `n`, the 經營方向 label with its summary, and which jobs were updated (策略關聯, new `[company]` risks, changed odds). Name every source that was skipped (login, block) and every section left `unknown` or `不明`.
+Per company, every fact with its source link (see **Cite every fact**): the Trend with its main evidence, the five culture facets as one line each (`未研究` for a missing 福利), the pay figures with `n`, the 經營方向 label with its summary, and which jobs were updated (策略關聯, new `[company]` risks, changed odds). Name every source that was skipped (login, block) and every section left `unknown` or `不明`.

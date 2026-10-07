@@ -26,10 +26,19 @@ def test_find_matches_slug_name_and_aliases_ignoring_case_and_punctuation(tmp_pa
 
 
 def test_stale_sections_use_per_section_ttl():
-    meta = {"checked": {"growth": "2026-07-01", "culture": date(2026, 9, 1), "pay": "2026-05-01"}}
+    meta = {"checked": {"growth": "2026-07-01", "culture": date(2026, 9, 1), "pay": "2026-05-01",
+                        "strategy": "2026-04-20"}}
 
-    assert stale_sections(meta, date(2026, 10, 6)) == ["growth"]  # 97 days > 90; pay 158 <= 180
-    assert stale_sections({}, date(2026, 10, 6)) == ["growth", "culture", "pay"]
+    assert stale_sections(meta, date(2026, 10, 6)) == ["growth"]  # 97 days > 90; pay 158, strategy 169 <= 180
+    assert stale_sections({}, date(2026, 10, 6)) == ["growth", "culture", "pay", "strategy"]
+
+
+def test_profile_without_strategy_is_stale_for_strategy_only():
+    meta = {"checked": {"growth": "2026-10-01", "culture": "2026-10-01", "pay": "2026-10-01"}}
+
+    assert stale_sections(meta, date(2026, 10, 6)) == ["strategy"]
+    meta["checked"]["strategy"] = "2026-04-08"
+    assert stale_sections(meta, date(2026, 10, 6)) == ["strategy"]  # 181 days > 180
 
 
 def test_trend_arrow(tmp_path):

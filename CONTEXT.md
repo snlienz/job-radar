@@ -14,6 +14,8 @@
 
 **Work Area** — a named group of one experience entry's Achievements in the Master Resume (`areas`, e.g. capture engine, Smart Meeting Flow). A Tailored Resume shows bullets under their area. A `core` Work Area is the main body of work in that job and appears in every Tailored Resume, so no resume hides what the job really was.
 
+**Story Bank** — `data/stories.yaml`, built by `/prep`: 5-10 English STAR(+Reflection) interview stories, each citing the Achievement ids it draws on and stating no number they lack. The reflection is the user's own words. Independent of any Job Posting; it records the Achievement ids it was `built_from` and is stale when the master has others.
+
 **Job Source** — an entry in `config/sources.yaml` (104 or a company careers site) with a fetch `method`: `api`, `fetch` or `browser`.
 
 **Search Profile** — default filters in `config/profile.yaml` (per user, gitignored; copied from `config/profile.example.yaml`) (industries, keywords, locations, seniority, `min_score`), overridable per `/search` run. Include keywords match the title or JD; exclude keywords match the title only. `/search url=<careers page>` scores one page's jobs without the include filter.

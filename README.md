@@ -66,7 +66,11 @@ Claude picks the relevant Achievements, rewords them for the JD without inventin
 
 Before you send it, read **`changes.md`** in the same folder: what was selected, rephrased and dropped, and which JD requirements your Master Resume cannot support. You can also pass a pasted JD or a URL instead of a job file.
 
-### 7. Track your applications
+### 7. Prepare for interviews — `/prep`
+
+Claude groups your Achievements into 5-10 reusable STAR stories (biggest technical challenge, conflict, failure, leadership, cross-team delivery…) in `data/stories.yaml`, each citing the Achievements it uses, and asks you for the reflection and any missing context; a new fact goes into the Master Resume only once you confirm it. The stories do not depend on a job, so build them once. After a `/scan` adds Achievements, `/hunt` and `/scan` tell you to run `/prep` again; with nothing new it changes nothing.
+
+### 8. Track your applications
 
 Each job file has a `status` in its frontmatter:
 
@@ -88,6 +92,7 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 | `/search [overrides]` | Fetch Job Postings from `config/sources.yaml`, filter by `config/profile.yaml`, score, write `jobs/` |
 | `/research <job, company or URL> [refresh]` | Research a company's pay, trend and culture into `companies/`, add it to its jobs |
 | `/tailor <job>` | Build a Tailored Resume for one Job Posting into `output/<company>-<id>/` |
+| `/prep` | Build or update the Story Bank of STAR interview stories in `data/stories.yaml` |
 | `/add-source <url>` | Add a company careers site and detect its fetch method |
 | `/add-template <docx>` | Convert a plain `.docx` CV into a tagged CV Template in `templates/` |
 
@@ -97,6 +102,7 @@ It changes only the `status` line and refreshes `INDEX.md`. `ignored` hides the 
 |---|---|
 | `data/raw/` | Your records (input) |
 | `data/master.yaml`, `data/master.md` | Master Resume and its readable view |
+| `data/stories.yaml` | Story Bank of interview stories from `/prep` |
 | `jobs/`, `jobs/INDEX.md` | Job Postings found by `/search` |
 | `companies/<slug>.md` | Company Profiles found by `/research` |
 | `output/<company>-<id>/` | Tailored Resumes with `changes.md` |

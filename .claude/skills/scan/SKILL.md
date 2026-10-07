@@ -64,4 +64,4 @@ After the merge, list what is missing and ask the user. Ask in the user's langua
 - Every `conflict` you set.
 - Suggestions for `locked` items.
 
-Apply the answers to `data/master.yaml`, mark user-confirmed values `confidence: high`, and re-run validate and render. Finish by reporting: files scanned, Achievements added or changed, open questions left.
+Apply the answers to `data/master.yaml`, mark user-confirmed values `confidence: high`, and re-run validate and render. Finish by reporting: files scanned, Achievements added or changed, open questions left. If Achievements were added and `python scripts/stories.py status` prints `missing` or `stale`, mention that `/prep` builds the Story Bank or adds them to it.

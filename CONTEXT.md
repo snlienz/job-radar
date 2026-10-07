@@ -24,9 +24,11 @@
 
 **Fit Score** — 0-100 rubric score of a Job Posting against the Master Resume (skills, seniority, industry, responsibilities), plus listed strengths and gaps, and optionally an estimated interview-odds range, risks (such as overqualification, salary or commute) and prep actions.
 
-**Company Profile** — `companies/<slug>.md`, what `/research` found about one company: its **Trend** (growing / flat / shrinking / unknown, from revenue YoY and layoff or hiring news), its culture on five facets (hours, management including bullying reports, promotion, flexibility, benefits) and its reported pay, each with dated, sourced evidence and its own `checked` date so stale sections are researched again. Keyed by the company's English name, with `aliases` (Chinese name, local subsidiary); a Taiwan branch shares its parent's profile. Gitignored.
+**Company Profile** — `companies/<slug>.md`, what `/research` found about one company: its **Trend** (growing / flat / shrinking / unknown, from revenue YoY and layoff or hiring news), its culture on five facets (hours, management including bullying reports, promotion, flexibility, benefits), its reported pay and its **direction** (經營方向: leadership and succession, stated direction, capital moves, and whether words match deeds, with a label; it never sets the Trend), each with dated, sourced evidence and its own `checked` date so stale sections are researched again. Keyed by the company's English name, with `aliases` (Chinese name, local subsidiary); a Taiwan branch shares its parent's profile. Gitignored.
 
-**Company research** — what `/research` adds to a Job Posting: a Company section, a `pay` estimate for that role, `[company]` risks and, if they change the odds, a new `interview_odds`. It never changes the Fit Score, which only measures resume-to-JD fit. Pay is compared with the gitignored `config/private.yaml` salary.
+**Company research** — what `/research` adds to a Job Posting: a Company section, a `pay` estimate for that role, its **Strategy Relevance**, `[company]` risks and, if they change the odds, a new `interview_odds`. It never changes the Fit Score, which only measures resume-to-JD fit. Pay is compared with the gitignored `config/private.yaml` salary.
+
+**Strategy Relevance** (策略關聯) — whether a Job Posting's role is 核心, 周邊 or 不明 to its company's direction, with a reason, written by `/research` into the job's Company section. Shown at the Company Gate; never changes the Fit Score.
 
 **Department Notes** — forum and web reports about one Job Posting's department or BU, researched only for `shortlisted` jobs and kept in that job's Company section (never in the Company Profile). The job's `department` field records that they were looked up (`none` when the JD names no department).
 

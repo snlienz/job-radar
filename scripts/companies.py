@@ -2,7 +2,7 @@
 list the Job Postings that belong to it.
 
   find   <name>      print the slug whose name, slug or aliases match (exit 1 if none)
-  stale  <slug>      print each section (growth, culture, pay) that is missing or past its TTL
+  stale  <slug>      print each section (growth, culture, pay, strategy) that is missing or past its TTL
   jobs   <slug>      print jobs/<key>.md for every non-ignored Job Posting of that company
 """
 import argparse
@@ -14,7 +14,7 @@ from pathlib import Path
 import yaml
 
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n?(.*)\Z", re.S)
-TTL_DAYS = {"growth": 90, "culture": 90, "pay": 180}  # docs/adr/0005-company-research.md
+TTL_DAYS = {"growth": 90, "culture": 90, "pay": 180, "strategy": 180}  # docs/adr/0005, 0008
 TRENDS = {"growing": "↑", "flat": "→", "shrinking": "↓", "unknown": "?"}
 
 

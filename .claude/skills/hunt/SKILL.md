@@ -39,7 +39,7 @@ The `research` jobs are shortlisted but their company (`company_profile`) or dep
 
 ## 3. Company Gate
 
-For each `decide` job read its `## Company` section and its Company Profile, and show a numbered table: score, interview odds, company, title, Trend, role pay, one line on culture (hours, management, promotion, flexibility, benefits; say `福利：未研究` for a profile written before the benefits facet, and that `/research <company> refresh` adds it), the department notes and every `[company]` risk.
+For each `decide` job read its `## Company` section and its Company Profile, and show a numbered table: score, interview odds, company, title, Trend, role pay, one line on culture (hours, management, promotion, flexibility, benefits; say `福利：未研究` for a profile written before the benefits facet, and that `/research <company> refresh` adds it), 方向 (the profile's 經營方向 label and the job's 策略關聯; `未研究` for a profile without 經營方向, which the next `/research <company>` adds), the department notes and every `[company]` risk.
 
 Ask which jobs to apply for and which to drop. Run `/tailor jobs/<key>.md` for each chosen job, one at a time (it sets `tailored`). Set the dropped ones to `ignored`. The rest stay shortlisted and come back here next time.
 
